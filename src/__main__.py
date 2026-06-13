@@ -153,6 +153,7 @@ def main():
         now = time.monotonic()
 
         if count != current_count:
+            logger.info("Car count changed: %d -> %d", current_count, count)
             mqtt_client.publish({
                 "camera": app_config.camera_name,
                 "count": count,
