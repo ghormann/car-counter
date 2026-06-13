@@ -53,6 +53,7 @@ suppressed if intersection_area / vehicle_area >= 0.95
 | `annotate_images.py` | Pass `ignore_regions=[]` |
 | `config/example-config.yaml` | Add commented-out `ignore_regions` example |
 | `docs/config-reference.md` | Add `ignore_regions` section after `scan_regions` |
+| `docs/requirements.md` | Add `ignore_regions` to functional requirements and config YAML example |
 | `README.md` | Note `ignore_regions` feature |
 
 ---
