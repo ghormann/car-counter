@@ -1,0 +1,15 @@
+services:
+  car-counter:
+    build: .
+    environment:
+      - APP_CONFIG_PATH=/config/app/config.yaml
+      - MQTT_CONFIG_PATH=/config/mqtt/config.json
+      - LOG_LEVEL=INFO
+      - LIVENESS_FILE=/tmp/healthy
+    volumes:
+      - ./config/app-config.yaml:/config/app/config.yaml:ro
+      - ./config/mqtt-config.json:/config/mqtt/config.json:ro
+      - ~/output:/output
+    ports:
+      - "9600:9600"
+    restart: unless-stopped
