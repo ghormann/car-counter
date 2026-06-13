@@ -31,6 +31,94 @@ detection_cases:
     night_enhancement: true
     expected_count: 2
 
+  - name: vlcsnap_13h50m20s365
+    image: images/vlcsnap-2026-06-13-13h50m20s365.png
+    scan_regions: []
+    vehicle_classes: [car, truck, bus]
+    detection_confidence: 0.3
+    night_enhancement: true
+    expected_count: 4
+
+  - name: vlcsnap_13h50m41s507
+    image: images/vlcsnap-2026-06-13-13h50m41s507.png
+    scan_regions: []
+    vehicle_classes: [car, truck, bus]
+    detection_confidence: 0.3
+    night_enhancement: true
+    expected_count: 4
+
+  - name: vlcsnap_13h50m49s698
+    image: images/vlcsnap-2026-06-13-13h50m49s698.png
+    scan_regions: []
+    vehicle_classes: [car, truck, bus]
+    detection_confidence: 0.3
+    night_enhancement: true
+    expected_count: 4
+
+  - name: vlcsnap_13h50m56s751
+    image: images/vlcsnap-2026-06-13-13h50m56s751.png
+    scan_regions: []
+    vehicle_classes: [car, truck, bus]
+    detection_confidence: 0.3
+    night_enhancement: true
+    expected_count: 4
+
+  - name: vlcsnap_13h51m05s162
+    image: images/vlcsnap-2026-06-13-13h51m05s162.png
+    scan_regions: []
+    vehicle_classes: [car, truck, bus]
+    detection_confidence: 0.3
+    night_enhancement: true
+    expected_count: 4
+
+  - name: vlcsnap_14h00m07s177
+    image: images/vlcsnap-2026-06-13-14h00m07s177.png
+    scan_regions: []
+    vehicle_classes: [car, truck, bus]
+    detection_confidence: 0.3
+    night_enhancement: true
+    expected_count: 4
+
+  - name: vlcsnap_14h00m13s515
+    image: images/vlcsnap-2026-06-13-14h00m13s515.png
+    scan_regions: []
+    vehicle_classes: [car, truck, bus]
+    detection_confidence: 0.3
+    night_enhancement: true
+    expected_count: 4
+
+  - name: vlcsnap_14h00m29s134
+    image: images/vlcsnap-2026-06-13-14h00m29s134.png
+    scan_regions: []
+    vehicle_classes: [car, truck, bus]
+    detection_confidence: 0.3
+    night_enhancement: true
+    expected_count: 4
+
+  - name: vlcsnap_14h00m39s117
+    image: images/vlcsnap-2026-06-13-14h00m39s117.png
+    scan_regions: []
+    vehicle_classes: [car, truck, bus]
+    detection_confidence: 0.3
+    night_enhancement: true
+    expected_count: 4
+
+  - name: vlcsnap_14h00m48s284
+    image: images/vlcsnap-2026-06-13-14h00m48s284.png
+    scan_regions: []
+    vehicle_classes: [car, truck, bus]
+    detection_confidence: 0.3
+    night_enhancement: true
+    expected_count: 4
+
+  - name: vlcsnap_14h01m01s333
+    image: images/vlcsnap-2026-06-13-14h01m01s333.png
+    scan_regions: []
+    vehicle_classes: [car, truck, bus]
+    detection_confidence: 0.3
+    night_enhancement: true
+    expected_count: 4
+
   - name: night_side_truck
     image: images/night_side.jpg
     scan_regions: []
