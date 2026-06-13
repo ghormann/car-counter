@@ -278,13 +278,11 @@ class TestIgnoreRegions:
         assert d._is_in_ignore_regions((10, 10, 190, 190)) is True
 
     def test_vehicle_exactly_95_percent_inside_is_suppressed(self):
-        # region covers x=0..200, y=0..200 (area 40000)
-        # box: x=0..200, y=0..200 (area=40000), but shift so 95% overlaps
-        # box x=0..200, y=0..200 (area=40000); region x=0..190, y=0..211 (> 95%)
+        # region: x=0..200, y=0..200 (area 40000)
+        # box: x=0..200, y=0..200 (area 40000)
+        # intersection: 40000 => coverage 100% >= 0.95 → suppressed
         region = IgnoreRegion(x=0, y=0, width=200, height=200)
         d = make_detector(ignore_regions=[region])
-        # box: x=0..200, y=0..200 (area 40000)
-        # intersection with region (0..200, 0..200): 40000 => 100%
         assert d._is_in_ignore_regions((0, 0, 200, 200)) is True
 
     def test_vehicle_94_percent_inside_is_not_suppressed(self):
