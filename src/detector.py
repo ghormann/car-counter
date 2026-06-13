@@ -64,7 +64,7 @@ class Detector:
         detection_confidence: float,
         iou_threshold: float,
         stationary_seconds: int,
-        target_fps: int,
+        target_fps: float,
         night_enhancement: bool,
         scan_regions: list[BoxedRegion],
         ignore_regions: list[BoxedRegion],

@@ -4,6 +4,9 @@ import os
 import signal
 import sys
 import time
+
+import torch
+torch.backends.nnpack.enabled = False  # NNPACK is unsupported on this hardware; env var NNPACK_DISABLE has no effect in PyTorch
 from datetime import datetime, timezone
 from pathlib import Path
 

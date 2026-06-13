@@ -24,7 +24,7 @@ class AppConfig:
     stationary_seconds: int
     iou_threshold: float
     night_enhancement: bool
-    target_fps: int
+    target_fps: float
     model_path: str
     publish_interval_seconds: int
     mqtt_timeout_seconds: int
@@ -93,7 +93,7 @@ def load_app_config(path: str) -> AppConfig:
         stationary_seconds=int(data['stationary_seconds']),
         iou_threshold=float(data['iou_threshold']),
         night_enhancement=bool(data['night_enhancement']),
-        target_fps=int(data['target_fps']),
+        target_fps=float(data['target_fps']),
         model_path=str(data['model_path']),
         publish_interval_seconds=int(data['publish_interval_seconds']),
         mqtt_timeout_seconds=int(data['mqtt_timeout_seconds']),
