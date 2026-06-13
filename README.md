@@ -39,6 +39,8 @@ Metrics are available at `http://localhost:9600/metrics`.
 
 ## Configuration
 
+Full field-by-field documentation is in [`docs/config-reference.md`](docs/config-reference.md).
+
 ### Environment Variables
 
 | Variable           | Default                    | Description                                      |
