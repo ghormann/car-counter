@@ -41,6 +41,24 @@ Pixel coordinates relative to the full frame resolution. If omitted, the entire 
 | `width`   | int  | Width of the region in pixels     |
 | `height`  | int  | Height of the region in pixels    |
 
+### Ignore Regions (optional)
+
+```yaml
+ignore_regions:
+  - { x: 0, y: 0, width: 100, height: 50 }
+```
+
+Pixel coordinates relative to the full frame resolution. If a detected vehicle's bounding box is 95% or more inside any ignore region, it is excluded from counting. Useful for masking areas with frequent false positives (e.g., a neighbor's driveway at the edge of frame).
+
+Ignore regions are rendered as **blue** outlines labeled `exclude` on annotated images.
+
+| Sub-field | Type | Description                        |
+| --------- | ---- | ---------------------------------- |
+| `x`       | int  | Left edge of the region in pixels  |
+| `y`       | int  | Top edge of the region in pixels   |
+| `width`   | int  | Width of the region in pixels      |
+| `height`  | int  | Height of the region in pixels     |
+
 ### Vehicle Detection
 
 | Field                  | Type            | Default             | Description                                                                                                                               |

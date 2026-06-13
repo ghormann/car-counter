@@ -8,7 +8,7 @@ Monitors RTSPS camera feeds and counts stationary motor vehicles (cars, trucks, 
 - **Stationary vehicle tracking** — only counts vehicles present for a configurable duration (IoU-based across frames)
 - **Night/IR preprocessing** — automatic CLAHE enhancement for dark color and IR frames
 - **MQTT publishing** — on count change, heartbeat, disconnect, and shutdown
-- **Annotated screenshots** — saved on count change with bounding boxes and scan region overlays
+- **Annotated screenshots** — saved on count change with bounding boxes, scan region overlays (green), and ignore region overlays (blue)
 - **Prometheus metrics** — exposed on port 9600 at `/metrics`
 - **Kubernetes-ready** — liveness/readiness probes, SIGTERM handling, structured JSON logs
 
@@ -59,6 +59,10 @@ rtsps_url: rtsps://192.168.1.10/stream # Credentials optional: rtsps://user:pass
 # Scan regions (optional — omit to scan entire frame)
 scan_regions:
   - { x: 100, y: 200, width: 400, height: 300 }
+
+# Ignore regions (optional — vehicles ≥95% inside are excluded from counting)
+# ignore_regions:
+#   - { x: 0, y: 0, width: 100, height: 50 }
 
 vehicle_classes: [car, truck, bus] # COCO class names to detect
 detection_confidence: 0.4 # Minimum confidence (lower = better night recall)
