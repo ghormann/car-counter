@@ -4,7 +4,7 @@ detection_cases:
     scan_regions: []
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
-    night_enhancement: false
+    night_enhancement: true
     expected_count: 2
 
   - name: daytime_two_vehicles
@@ -12,7 +12,7 @@ detection_cases:
     scan_regions: []
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
-    night_enhancement: false
+    night_enhancement: true
     expected_count: 2
 
   - name: night_driveway_car
@@ -36,7 +36,7 @@ detection_cases:
     scan_regions: []
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
-    night_enhancement: false
+    night_enhancement: true
     expected_count: 1
 
 clahe_cases:
