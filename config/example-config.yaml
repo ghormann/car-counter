@@ -26,6 +26,7 @@ model_path: yolov8n.pt
 # MQTT
 publish_interval_seconds: 5
 mqtt_timeout_seconds: 60
+mqtt_topic: car-counter/driveway
 
 # Image saving
 output_dir: ~/output

@@ -54,7 +54,7 @@ def main():
             port=mqtt_config.port,
             username=mqtt_config.username,
             password=mqtt_config.password,
-            camera_name=app_config.camera_name,
+            topic=app_config.mqtt_topic,
             timeout_seconds=app_config.mqtt_timeout_seconds,
         )
         mqtt_client.connect()
@@ -82,10 +82,16 @@ def main():
     )
 
     current_count = 0
+    # Tracks camera stream state so every MQTT publish reflects current connectivity.
+    # Set by the FrameStream callbacks below, not by MQTT events.
+    current_status = "connected"
     last_publish_time = 0.0
     startup_image_saved = False
 
+    # Called by FrameStream when the RTSP camera feed drops or fails to open.
     def on_disconnect():
+        nonlocal current_status
+        current_status = "disconnected"
         metrics.stream_connected.set(0)
         metrics.stream_reconnects.inc()
         mqtt_client.publish({
@@ -95,7 +101,10 @@ def main():
             "status": "disconnected",
         })
 
+    # Called by FrameStream when the RTSP camera feed (re)connects successfully.
     def on_reconnect():
+        nonlocal current_status
+        current_status = "connected"
         metrics.stream_connected.set(1)
         mqtt_client.publish({
             "camera": app_config.camera_name,
@@ -150,6 +159,7 @@ def main():
                 "camera": app_config.camera_name,
                 "count": count,
                 "timestamp": _utcnow(),
+                "status": current_status,
             })
             metrics.mqtt_messages_published.inc()
             last_publish_time = now
@@ -164,6 +174,7 @@ def main():
                 "camera": app_config.camera_name,
                 "count": current_count,
                 "timestamp": _utcnow(),
+                "status": current_status,
             })
             metrics.mqtt_messages_published.inc()
             last_publish_time = now

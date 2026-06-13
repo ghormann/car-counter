@@ -54,6 +54,8 @@ class FrameStream:
                     self._connected = False
                     self._on_disconnect()
                 elif backoff == 1:
+                    # Fire on_disconnect for the very first failed open so the broker
+                    # immediately reflects that the camera is unavailable at startup.
                     self._on_disconnect()
                 logger.warning("Stream unavailable, retrying in %ds", backoff)
                 time.sleep(backoff)

@@ -20,6 +20,7 @@ VALID_APP_DATA = {
     'model_path': 'yolov8n.pt',
     'publish_interval_seconds': 5,
     'mqtt_timeout_seconds': 60,
+    'mqtt_topic': 'car-counter/driveway',
     'image_save_cooldown_seconds': 30,
     # output_dir is set per-test using tmp_path
 }
@@ -88,8 +89,8 @@ class TestLoadAppConfig:
     @pytest.mark.parametrize("missing_field", [
         'camera_name', 'rtsps_url', 'vehicle_classes', 'detection_confidence',
         'stationary_seconds', 'iou_threshold', 'target_fps', 'model_path',
-        'publish_interval_seconds', 'mqtt_timeout_seconds', 'output_dir',
-        'image_save_cooldown_seconds',
+        'publish_interval_seconds', 'mqtt_timeout_seconds', 'mqtt_topic',
+        'output_dir', 'image_save_cooldown_seconds',
     ])
     def test_missing_required_field_raises_value_error(self, tmp_path, missing_field):
         data = dict(VALID_APP_DATA)

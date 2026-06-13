@@ -28,6 +28,7 @@ class AppConfig:
     model_path: str
     publish_interval_seconds: int
     mqtt_timeout_seconds: int
+    mqtt_topic: str
     output_dir: Path
     image_save_cooldown_seconds: int
 
@@ -45,7 +46,7 @@ _REQUIRED_APP_FIELDS = [
     'stationary_seconds', 'iou_threshold', 'night_enhancement',
     'night_brightness_threshold', 'ir_saturation_threshold', 'target_fps',
     'model_path', 'publish_interval_seconds', 'mqtt_timeout_seconds',
-    'output_dir', 'image_save_cooldown_seconds',
+    'mqtt_topic', 'output_dir', 'image_save_cooldown_seconds',
 ]
 
 
@@ -93,6 +94,7 @@ def load_app_config(path: str) -> AppConfig:
         model_path=str(data['model_path']),
         publish_interval_seconds=int(data['publish_interval_seconds']),
         mqtt_timeout_seconds=int(data['mqtt_timeout_seconds']),
+        mqtt_topic=str(data['mqtt_topic']),
         output_dir=output_dir,
         image_save_cooldown_seconds=int(data['image_save_cooldown_seconds']),
     )

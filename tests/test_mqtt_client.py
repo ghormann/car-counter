@@ -10,7 +10,7 @@ from src.mqtt_client import MqttClient
 def make_client(mocker, timeout_seconds=60):
     mock_paho = MagicMock()
     mocker.patch('src.mqtt_client.mqtt.Client', return_value=mock_paho)
-    return MqttClient('host', 1883, 'user', 'pass', 'driveway', timeout_seconds), mock_paho
+    return MqttClient('host', 1883, 'user', 'pass', 'car-counter/driveway', timeout_seconds), mock_paho
 
 
 class TestMqttClientQueue:

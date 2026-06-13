@@ -16,13 +16,13 @@ class MqttClient:
         port: int,
         username: str,
         password: str,
-        camera_name: str,
+        topic: str,
         timeout_seconds: int,
     ):
         self._host = host
         self._port = port
         self._timeout_seconds = timeout_seconds
-        self._topic = f"car-counter/{camera_name}"
+        self._topic = topic
         self._queue: deque[dict] = deque()
         self._queue_lock = threading.Lock()
         self._connected = False
@@ -90,6 +90,8 @@ class MqttClient:
         with self._queue_lock:
             while self._queue:
                 payload = self._queue.popleft()
+                # retain=True so new subscribers immediately receive the current state
+                # without waiting for the next detection or heartbeat publish.
                 self._client.publish(
                     self._topic,
                     json.dumps(payload),
