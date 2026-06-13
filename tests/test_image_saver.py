@@ -4,7 +4,7 @@ import cv2
 import pytest
 from pathlib import Path
 
-from src.config import ScanRegion
+from src.config import ScanRegion, IgnoreRegion
 from src.detector import TrackedVehicle
 from src.image_saver import ImageSaver
 
@@ -94,6 +94,16 @@ class TestImageSaverAnnotation:
         # Green in BGR is (B=0, G=255, R=0). Rectangle drawn at (col=50, row=50).
         assert annotated[50, 50, 1] == 255  # G channel high
         assert annotated[50, 50, 2] == 0    # R channel zero
+
+    def test_ignore_region_drawn_blue_with_label(self, tmp_output_dir):
+        saver = ImageSaver(tmp_output_dir, "driveway", cooldown_seconds=0)
+        region = IgnoreRegion(x=50, y=50, width=100, height=100)
+        frame = make_frame()
+        annotated = saver._annotate(frame.copy(), [], [], [region])
+        # Blue in BGR is (B=255, G=0, R=0). Rectangle drawn at (col=50, row=50).
+        assert annotated[50, 50, 0] == 255  # B channel high
+        assert annotated[50, 50, 2] == 0    # R channel zero
+        assert annotated[50, 50, 1] == 0    # G channel zero
 
     def test_annotate_does_not_modify_original_frame(self, tmp_output_dir):
         saver = ImageSaver(tmp_output_dir, "driveway", cooldown_seconds=0)

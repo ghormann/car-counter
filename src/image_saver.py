@@ -6,7 +6,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from src.config import ScanRegion
+from src.config import ScanRegion, IgnoreRegion
 from src.detector import TrackedVehicle
 
 logger = logging.getLogger(__name__)
@@ -24,8 +24,11 @@ class ImageSaver:
         frame: np.ndarray,
         stationary_vehicles: list[TrackedVehicle],
         scan_regions: list[ScanRegion],
+        ignore_regions: list[IgnoreRegion] = None,
         prefix: str = "",
     ) -> Path | None:
+        if ignore_regions is None:
+            ignore_regions = []
         now = time.monotonic()
         if not prefix and (now - self._last_save_time) < self._cooldown_seconds:
             return None
@@ -48,7 +51,7 @@ class ImageSaver:
 
         filename = f"{prefix}{timestamp}.jpg"
         path = save_dir / filename
-        annotated = self._annotate(frame.copy(), stationary_vehicles, scan_regions)
+        annotated = self._annotate(frame.copy(), stationary_vehicles, scan_regions, ignore_regions)
 
         try:
             success = cv2.imwrite(str(path), annotated, [cv2.IMWRITE_JPEG_QUALITY, 85])
@@ -70,7 +73,10 @@ class ImageSaver:
         frame: np.ndarray,
         stationary_vehicles: list[TrackedVehicle],
         scan_regions: list[ScanRegion],
+        ignore_regions: list[IgnoreRegion] = None,
     ) -> np.ndarray:
+        if ignore_regions is None:
+            ignore_regions = []
         frame = frame.copy()
         font = cv2.FONT_HERSHEY_SIMPLEX
 
@@ -87,6 +93,16 @@ class ImageSaver:
             x1, y1 = region.x, region.y
             x2, y2 = region.x + region.width, region.y + region.height
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)  # Green
+
+        for region in ignore_regions:
+            x1, y1 = region.x, region.y
+            x2, y2 = region.x + region.width, region.y + region.height
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)  # Blue
+            label = "exclude"
+            (lw, lh), baseline = cv2.getTextSize(label, font, 0.5, 1)
+            ly = y1 + lh + baseline + 4
+            cv2.rectangle(frame, (x1, y1), (x1 + lw, ly), (255, 0, 0), cv2.FILLED)
+            cv2.putText(frame, label, (x1, ly - baseline), font, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
 
         total = len(stationary_vehicles)
         summary = f"Vehicles detected: {total}"
