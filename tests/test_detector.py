@@ -282,14 +282,14 @@ class TestRealImageDetection:
             iou_threshold=0.5,
             stationary_seconds=1,
             target_fps=1,
-            night_enhancement=False,
+            night_enhancement=case.get('night_enhancement', False),
             scan_regions=scan_regions,
         )
 
-        detections = detector._run_inference(frame)
-        assert len(detections) == case['expected_count'], (
-            f"Expected {case['expected_count']} vehicles, got {len(detections)}: "
-            + ", ".join(f"{d.class_name}@{d.confidence:.2f}" for d in detections)
+        count, vehicles = detector.process_frame(frame)
+        assert count == case['expected_count'], (
+            f"Expected {case['expected_count']} vehicles, got {count}: "
+            + ", ".join(f"{v.box}" for v in vehicles)
         )
 
 
