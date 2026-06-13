@@ -3,7 +3,7 @@ import pytest
 import yaml
 from pathlib import Path
 
-from src.config import load_app_config, load_mqtt_config, AppConfig, MqttConfig, ScanRegion
+from src.config import load_app_config, load_mqtt_config, AppConfig, MqttConfig, ScanRegion, IgnoreRegion
 
 
 VALID_APP_DATA = {
@@ -73,6 +73,20 @@ class TestLoadAppConfig:
         p = make_app_config_file(tmp_path)
         result = load_app_config(str(p))
         assert result.scan_regions == []
+
+    def test_ignore_regions_parsed_when_present(self, tmp_path):
+        data = dict(VALID_APP_DATA)
+        data['output_dir'] = str(tmp_path)
+        data['ignore_regions'] = [{'x': 10, 'y': 20, 'width': 50, 'height': 60}]
+        p = tmp_path / 'config.yaml'
+        write_yaml(p, data)
+        result = load_app_config(str(p))
+        assert result.ignore_regions == [IgnoreRegion(x=10, y=20, width=50, height=60)]
+
+    def test_ignore_regions_defaults_to_empty_list(self, tmp_path):
+        p = make_app_config_file(tmp_path)
+        result = load_app_config(str(p))
+        assert result.ignore_regions == []
 
     def test_missing_file_raises_file_not_found(self, tmp_path):
         with pytest.raises(FileNotFoundError, match="not found"):

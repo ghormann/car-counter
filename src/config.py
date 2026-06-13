@@ -13,10 +13,19 @@ class ScanRegion:
 
 
 @dataclass
+class IgnoreRegion:
+    x: int
+    y: int
+    width: int
+    height: int
+
+
+@dataclass
 class AppConfig:
     camera_name: str
     rtsps_url: str
     scan_regions: list[ScanRegion]
+    ignore_regions: list[IgnoreRegion]
     vehicle_classes: list[str]
     detection_confidence: float
     stationary_seconds: int
@@ -76,10 +85,16 @@ def load_app_config(path: str) -> AppConfig:
         for r in data.get('scan_regions', [])
     ]
 
+    ignore_regions = [
+        IgnoreRegion(x=r['x'], y=r['y'], width=r['width'], height=r['height'])
+        for r in data.get('ignore_regions', [])
+    ]
+
     return AppConfig(
         camera_name=str(data['camera_name']),
         rtsps_url=str(rtsps_url),
         scan_regions=scan_regions,
+        ignore_regions=ignore_regions,
         vehicle_classes=list(data['vehicle_classes']),
         detection_confidence=float(data['detection_confidence']),
         stationary_seconds=int(data['stationary_seconds']),
