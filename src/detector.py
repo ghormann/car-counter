@@ -54,6 +54,27 @@ class Detector:
         self._tile_height = tile_height
         self._tile_overlap = tile_overlap
 
+    def _generate_tiles(self, height: int, width: int) -> list[tuple[int, int, int, int]]:
+        if self._tile_width is None or self._tile_height is None or self._tile_overlap is None:
+            return []
+        stride_x = max(1, int(self._tile_width * (1 - self._tile_overlap)))
+        stride_y = max(1, int(self._tile_height * (1 - self._tile_overlap)))
+        tiles = []
+        y = 0
+        while y < height:
+            x = 0
+            while x < width:
+                w = min(self._tile_width, width - x)
+                h = min(self._tile_height, height - y)
+                tiles.append((x, y, w, h))
+                if x + self._tile_width >= width:
+                    break
+                x += stride_x
+            if y + self._tile_height >= height:
+                break
+            y += stride_y
+        return tiles
+
     def process_frame(self, frame: np.ndarray) -> tuple[int, list[TrackedVehicle]]:
         if self._night_enhancement:
             frame = self._enhance_frame(frame)

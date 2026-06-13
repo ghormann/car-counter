@@ -46,6 +46,9 @@ def make_detector(**kwargs):
         target_fps=1,
         night_enhancement=True,
         scan_regions=[],
+        tile_width=None,
+        tile_height=None,
+        tile_overlap=None,
     )
     defaults.update(kwargs)
     with patch('src.detector.YOLO'):
@@ -392,3 +395,37 @@ class TestTilingInit:
         assert d._tile_width is None
         assert d._tile_height is None
         assert d._tile_overlap is None
+
+
+class TestGenerateTiles:
+    def test_no_tiling_when_params_are_none(self):
+        d = make_detector()
+        tiles = d._generate_tiles(height=1080, width=1920)
+        assert tiles == []
+
+    def test_single_tile_when_image_smaller_than_tile(self):
+        d = make_detector(tile_width=640, tile_height=640, tile_overlap=0.2)
+        tiles = d._generate_tiles(height=480, width=640)
+        assert len(tiles) == 1
+        assert tiles[0] == (0, 0, 640, 480)  # (x, y, w, h) clamped to image
+
+    def test_tiles_cover_full_image(self):
+        d = make_detector(tile_width=640, tile_height=640, tile_overlap=0.0)
+        tiles = d._generate_tiles(height=1280, width=1280)
+        # With no overlap and 640-wide tiles: expect 2x2 = 4 tiles
+        assert len(tiles) == 4
+
+    def test_tiles_overlap_by_specified_fraction(self):
+        d = make_detector(tile_width=640, tile_height=640, tile_overlap=0.5)
+        tiles = d._generate_tiles(height=640, width=1280)
+        # stride = 640 * (1 - 0.5) = 320; fits: x=0, x=320, x=640 → 3 tiles
+        xs = [t[0] for t in tiles]
+        assert 0 in xs
+        assert 320 in xs
+
+    def test_tile_bounds_never_exceed_image(self):
+        d = make_detector(tile_width=640, tile_height=640, tile_overlap=0.2)
+        tiles = d._generate_tiles(height=1080, width=1920)
+        for x, y, w, h in tiles:
+            assert x + w <= 1920
+            assert y + h <= 1080
