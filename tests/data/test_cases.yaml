@@ -45,7 +45,7 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
-    expected_count: 4
+    expected_count: 6
 
   - name: vlcsnap_13h50m49s698
     image: images/vlcsnap-2026-06-13-13h50m49s698.png
@@ -53,7 +53,7 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
-    expected_count: 4
+    expected_count: 2
 
   - name: vlcsnap_13h50m56s751
     image: images/vlcsnap-2026-06-13-13h50m56s751.png
@@ -61,7 +61,7 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
-    expected_count: 4
+    expected_count: 3
 
   - name: vlcsnap_13h51m05s162
     image: images/vlcsnap-2026-06-13-13h51m05s162.png
@@ -69,7 +69,7 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
-    expected_count: 4
+    expected_count: 2
 
   - name: vlcsnap_14h00m07s177
     image: images/vlcsnap-2026-06-13-14h00m07s177.png
@@ -77,7 +77,7 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
-    expected_count: 4
+    expected_count: 10
 
   - name: vlcsnap_14h00m13s515
     image: images/vlcsnap-2026-06-13-14h00m13s515.png
@@ -85,7 +85,7 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
-    expected_count: 4
+    expected_count: 7
 
   - name: vlcsnap_14h00m29s134
     image: images/vlcsnap-2026-06-13-14h00m29s134.png
@@ -101,7 +101,7 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
-    expected_count: 4
+    expected_count: 6
 
   - name: vlcsnap_14h00m48s284
     image: images/vlcsnap-2026-06-13-14h00m48s284.png
@@ -109,7 +109,7 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
-    expected_count: 4
+    expected_count: 2
 
   - name: vlcsnap_14h01m01s333
     image: images/vlcsnap-2026-06-13-14h01m01s333.png
@@ -117,7 +117,7 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
-    expected_count: 4
+    expected_count: 5
 
   - name: night_side_truck
     image: images/night_side.jpg
