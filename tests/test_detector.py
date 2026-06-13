@@ -46,9 +46,6 @@ def make_detector(**kwargs):
         target_fps=1,
         night_enhancement=True,
         scan_regions=[],
-        tile_width=None,
-        tile_height=None,
-        tile_overlap=None,
     )
     defaults.update(kwargs)
     with patch('src.detector.YOLO'):
@@ -279,17 +276,14 @@ class TestRealImageDetection:
             for r in case.get('scan_regions', [])
         ]
         detector = Detector(
-            model_path='yolov8x.pt',
+            model_path='yolov8l.pt',
             vehicle_classes=case.get('vehicle_classes', ['car', 'truck', 'bus']),
             detection_confidence=case.get('detection_confidence', 0.4),
             iou_threshold=0.5,
             stationary_seconds=1,
             target_fps=1,
-            night_enhancement=case.get('night_enhancement', True),
+            night_enhancement=case.get('night_enhancement', False),
             scan_regions=scan_regions,
-            tile_width=case.get('tile_width'),
-            tile_height=case.get('tile_height'),
-            tile_overlap=case.get('tile_overlap'),
         )
 
         count, vehicles = detector.process_frame(frame)
@@ -361,160 +355,3 @@ class TestRunInference:
 
         detections = d._run_inference(np.zeros((480, 640, 3), dtype=np.uint8))
         assert len(detections) == 0
-
-
-class TestTilingInit:
-    def test_detector_accepts_tiling_params(self):
-        with patch('src.detector.YOLO'):
-            d = Detector(
-                model_path='yolov8x.pt',
-                vehicle_classes=['car'],
-                detection_confidence=0.3,
-                iou_threshold=0.5,
-                stationary_seconds=3,
-                target_fps=1,
-                night_enhancement=True,
-                scan_regions=[],
-                tile_width=640,
-                tile_height=640,
-                tile_overlap=0.2,
-            )
-        assert d._tile_width == 640
-        assert d._tile_height == 640
-        assert d._tile_overlap == pytest.approx(0.2)
-
-    def test_detector_tiling_defaults_to_none(self):
-        with patch('src.detector.YOLO'):
-            d = Detector(
-                model_path='yolov8x.pt',
-                vehicle_classes=['car'],
-                detection_confidence=0.3,
-                iou_threshold=0.5,
-                stationary_seconds=3,
-                target_fps=1,
-                night_enhancement=True,
-                scan_regions=[],
-            )
-        assert d._tile_width is None
-        assert d._tile_height is None
-        assert d._tile_overlap is None
-
-
-class TestGenerateTiles:
-    def test_no_tiling_when_params_are_none(self):
-        d = make_detector()
-        tiles = d._generate_tiles(height=1080, width=1920)
-        assert tiles == []
-
-    def test_single_tile_when_image_smaller_than_tile(self):
-        d = make_detector(tile_width=640, tile_height=640, tile_overlap=0.2)
-        tiles = d._generate_tiles(height=480, width=640)
-        assert len(tiles) == 1
-        assert tiles[0] == (0, 0, 640, 480)  # (x, y, w, h) clamped to image
-
-    def test_tiles_cover_full_image(self):
-        d = make_detector(tile_width=640, tile_height=640, tile_overlap=0.0)
-        tiles = d._generate_tiles(height=1280, width=1280)
-        # With no overlap and 640-wide tiles: expect 2x2 = 4 tiles
-        assert len(tiles) == 4
-
-    def test_tiles_overlap_by_specified_fraction(self):
-        d = make_detector(tile_width=640, tile_height=640, tile_overlap=0.5)
-        tiles = d._generate_tiles(height=640, width=1280)
-        # stride = 640 * (1 - 0.5) = 320; fits: x=0, x=320, x=640 → 3 tiles
-        xs = [t[0] for t in tiles]
-        assert 0 in xs
-        assert 320 in xs
-
-    def test_tile_bounds_never_exceed_image(self):
-        d = make_detector(tile_width=640, tile_height=640, tile_overlap=0.2)
-        tiles = d._generate_tiles(height=1080, width=1920)
-        for x, y, w, h in tiles:
-            assert x + w <= 1920
-            assert y + h <= 1080
-
-
-class TestTiledInference:
-    def _make_mock_result(self, boxes_data):
-        """boxes_data: list of (x1,y1,x2,y2, conf, cls_id)"""
-        mock_result = MagicMock()
-        mock_boxes = []
-        for x1, y1, x2, y2, conf, cls_id in boxes_data:
-            b = MagicMock()
-            b.xyxy = [np.array([x1, y1, x2, y2], dtype=np.float32)]
-            b.conf = [np.float32(conf)]
-            b.cls = [np.float32(cls_id)]
-            mock_boxes.append(b)
-        mock_result.boxes = mock_boxes
-        return mock_result
-
-    def test_tiling_disabled_runs_single_inference(self):
-        d = make_detector(vehicle_classes=['car'], detection_confidence=0.3)
-        frame = np.zeros((480, 640, 3), dtype=np.uint8)
-        result = self._make_mock_result([(10, 10, 100, 100, 0.9, 2)])
-        d._model.return_value = [result]
-        d._model.names = {2: 'car'}
-
-        detections = d._run_inference(frame)
-        assert d._model.call_count == 1
-        assert len(detections) == 1
-
-    def test_tiling_enabled_runs_tile_plus_fullframe(self):
-        # 1280-wide frame, 640-wide tiles, no overlap → 2 tiles + 1 full = 3 calls
-        d = make_detector(
-            vehicle_classes=['car'], detection_confidence=0.3,
-            tile_width=640, tile_height=480, tile_overlap=0.0,
-        )
-        frame = np.zeros((480, 1280, 3), dtype=np.uint8)
-        empty_result = self._make_mock_result([])
-        d._model.return_value = [empty_result]
-        d._model.names = {2: 'car'}
-
-        d._run_inference(frame)
-        assert d._model.call_count == 3  # 2 tiles + 1 full frame
-
-    def test_tile_detections_remapped_to_full_frame_coords(self):
-        # Tile starts at x=640, y=0; detection at tile-local (10,10,100,100)
-        # Should appear at full-frame (650,10,740,100)
-        d = make_detector(
-            vehicle_classes=['car'], detection_confidence=0.3,
-            tile_width=640, tile_height=480, tile_overlap=0.0,
-        )
-        frame = np.zeros((480, 1280, 3), dtype=np.uint8)
-        empty_result = self._make_mock_result([])
-        tile_result = self._make_mock_result([(10, 10, 100, 100, 0.9, 2)])
-        d._model.names = {2: 'car'}
-
-        call_count = 0
-        def side_effect(crop, verbose=False):
-            nonlocal call_count
-            call_count += 1
-            # Third call is the right tile (x=640): 1=full frame, 2=left tile, 3=right tile
-            if call_count == 3:
-                return [tile_result]
-            return [empty_result]
-
-        d._model.side_effect = side_effect
-
-        detections = d._run_inference(frame)
-        car_detections = [det for det in detections if det.class_name == 'car']
-        assert len(car_detections) == 1
-        x1, y1, x2, y2 = car_detections[0].box
-        assert x1 == pytest.approx(650)
-        assert x2 == pytest.approx(740)
-
-    def test_overlapping_tile_detections_deduplicated(self):
-        # Same vehicle detected in two overlapping tiles → NMS keeps only one
-        d = make_detector(
-            vehicle_classes=['car'], detection_confidence=0.3,
-            iou_threshold=0.5,
-            tile_width=640, tile_height=480, tile_overlap=0.5,
-        )
-        frame = np.zeros((480, 640, 3), dtype=np.uint8)
-        # Both tiles produce nearly the same box; should collapse to 1
-        dup_result = self._make_mock_result([(10, 10, 100, 100, 0.9, 2)])
-        d._model.return_value = [dup_result]
-        d._model.names = {2: 'car'}
-
-        detections = d._run_inference(frame)
-        assert len(detections) == 1

@@ -38,9 +38,6 @@ class Detector:
         target_fps: int,
         night_enhancement: bool,
         scan_regions: list[ScanRegion],
-        tile_width: int | None = None,
-        tile_height: int | None = None,
-        tile_overlap: float | None = None,
     ):
         self._model = YOLO(model_path)
         self._vehicle_classes = vehicle_classes
@@ -50,30 +47,6 @@ class Detector:
         self._night_enhancement = night_enhancement
         self._scan_regions = scan_regions
         self._tracked: list[TrackedVehicle] = []
-        self._tile_width = tile_width
-        self._tile_height = tile_height
-        self._tile_overlap = tile_overlap
-
-    def _generate_tiles(self, height: int, width: int) -> list[tuple[int, int, int, int]]:
-        if self._tile_width is None or self._tile_height is None or self._tile_overlap is None:
-            return []
-        stride_x = max(1, int(self._tile_width * (1 - self._tile_overlap)))
-        stride_y = max(1, int(self._tile_height * (1 - self._tile_overlap)))
-        tiles = []
-        y = 0
-        while y < height:
-            x = 0
-            while x < width:
-                w = min(self._tile_width, width - x)
-                h = min(self._tile_height, height - y)
-                tiles.append((x, y, w, h))
-                if x + self._tile_width >= width:
-                    break
-                x += stride_x
-            if y + self._tile_height >= height:
-                break
-            y += stride_y
-        return tiles
 
     def process_frame(self, frame: np.ndarray) -> tuple[int, list[TrackedVehicle]]:
         if self._night_enhancement:
@@ -111,25 +84,8 @@ class Detector:
         return cv2.cvtColor(sharpened, cv2.COLOR_GRAY2BGR)
 
     def _run_inference(self, frame: np.ndarray) -> list[Detection]:
-        height, width = frame.shape[:2]
-        candidates = self._infer_on_crop(frame, offset_x=0, offset_y=0)
-
-        for x, y, w, h in self._generate_tiles(height=height, width=width):
-            tile = frame[y:y + h, x:x + w]
-            tile_detections = self._infer_on_crop(tile, offset_x=x, offset_y=y)
-            candidates.extend(tile_detections)
-
-        candidates.sort(key=lambda d: d.confidence, reverse=True)
-        kept: list[Detection] = []
-        for candidate in candidates:
-            if not any(self._compute_iou(candidate.box, k.box) >= self._iou_threshold for k in kept):
-                kept.append(candidate)
-
-        return [d for d in kept if self._is_in_scan_regions(d.box)]
-
-    def _infer_on_crop(self, crop: np.ndarray, offset_x: int, offset_y: int) -> list[Detection]:
-        results = self._model(crop, verbose=False)
-        detections = []
+        results = self._model(frame, verbose=False)
+        candidates = []
         for result in results:
             for box in result.boxes:
                 x1, y1, x2, y2 = [float(v) for v in box.xyxy[0].tolist()]
@@ -137,12 +93,14 @@ class Detector:
                 class_id = int(box.cls[0])
                 class_name = self._model.names[class_id]
                 if class_name in self._vehicle_classes and conf >= self._detection_confidence:
-                    detections.append(Detection(
-                        box=(x1 + offset_x, y1 + offset_y, x2 + offset_x, y2 + offset_y),
-                        class_name=class_name,
-                        confidence=conf,
-                    ))
-        return detections
+                    if self._is_in_scan_regions((x1, y1, x2, y2)):
+                        candidates.append(Detection(box=(x1, y1, x2, y2), class_name=class_name, confidence=conf))
+        candidates.sort(key=lambda d: d.confidence, reverse=True)
+        kept: list[Detection] = []
+        for candidate in candidates:
+            if not any(self._compute_iou(candidate.box, k.box) >= self._iou_threshold for k in kept):
+                kept.append(candidate)
+        return kept
 
     def _update_tracker(self, detections: list[Detection]):
         matched_indices: set[int] = set()

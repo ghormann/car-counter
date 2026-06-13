@@ -126,26 +126,6 @@ class TestLoadAppConfig:
         result = load_app_config(str(p))
         assert result.output_dir == tmp_path / 'myoutput'
 
-    def test_tiling_fields_loaded_when_present(self, tmp_path):
-        data = dict(VALID_APP_DATA)
-        data['output_dir'] = str(tmp_path)
-        data['tile_width'] = 640
-        data['tile_height'] = 480
-        data['tile_overlap'] = 0.25
-        p = tmp_path / 'config.yaml'
-        write_yaml(p, data)
-        result = load_app_config(str(p))
-        assert result.tile_width == 640
-        assert result.tile_height == 480
-        assert result.tile_overlap == pytest.approx(0.25)
-
-    def test_tiling_fields_default_to_none_when_absent(self, tmp_path):
-        p = make_app_config_file(tmp_path)
-        result = load_app_config(str(p))
-        assert result.tile_width is None
-        assert result.tile_height is None
-        assert result.tile_overlap is None
-
 
 class TestLoadMqttConfig:
     def test_valid_config_returns_mqtt_config(self, tmp_path):
