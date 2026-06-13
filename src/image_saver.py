@@ -14,7 +14,24 @@ logger = logging.getLogger(__name__)
 
 
 class ImageSaver:
+    """Saves annotated JPEG frames to a date-partitioned directory tree.
+
+    Attributes:
+        _output_dir: Root directory under which per-camera subdirectories are created.
+        _camera_name: Camera identifier used as the first subdirectory level.
+        _cooldown_seconds: Minimum seconds between normal (non-prefixed) saves.
+        _last_save_time: Monotonic timestamp of the most recent normal save.
+    """
+
     def __init__(self, output_dir: Path, camera_name: str, cooldown_seconds: int):
+        """Initialize the saver.
+
+        Args:
+            output_dir: Root path where images are stored.
+            camera_name: Camera label used to namespace saved images.
+            cooldown_seconds: Minimum interval between unprefixed saves; prevents
+                flooding disk during sustained detections.
+        """
         self._output_dir = output_dir
         self._camera_name = camera_name
         self._cooldown_seconds = cooldown_seconds
@@ -28,6 +45,23 @@ class ImageSaver:
         ignore_regions: list[BoxedRegion] = None,
         prefix: str = "",
     ) -> Path | None:
+        """Annotate and save a frame to disk if the cooldown has elapsed.
+
+        The output path is ``<output_dir>/<camera>/<year>/<month>/<day>/<prefix><timestamp>.jpg``.
+        Cooldown is bypassed when *prefix* is non-empty, allowing forced saves
+        (e.g. debug snapshots) without resetting the normal save timer.
+
+        Args:
+            frame: Raw BGR frame from the camera.
+            stationary_vehicles: Vehicles to highlight with bounding boxes.
+            scan_regions: Detection zones drawn in green.
+            ignore_regions: Exclusion zones drawn in blue.
+            prefix: Optional filename prefix; non-empty values skip cooldown enforcement.
+
+        Returns:
+            Path to the saved file, or ``None`` if the cooldown blocked the save
+            or an I/O error occurred.
+        """
         if ignore_regions is None:
             ignore_regions = []
         now = time.monotonic()
@@ -76,6 +110,22 @@ class ImageSaver:
         scan_regions: list[BoxedRegion],
         ignore_regions: list[BoxedRegion] = None,
     ) -> np.ndarray:
+        """Draw bounding boxes and a summary overlay onto *frame*.
+
+        Stationary vehicles are outlined in red with a confidence label.
+        Scan regions are outlined in green. Ignore regions are outlined in blue
+        with an "exclude" label. A centered vehicle count is rendered at the
+        bottom of the frame.
+
+        Args:
+            frame: BGR image to annotate (will be copied internally).
+            stationary_vehicles: Detected vehicles to highlight.
+            scan_regions: Active detection zones to outline.
+            ignore_regions: Exclusion zones to outline.
+
+        Returns:
+            Annotated copy of *frame*.
+        """
         if ignore_regions is None:
             ignore_regions = []
         frame = frame.copy()
