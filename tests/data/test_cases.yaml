@@ -1,3 +1,11 @@
+detection_cases:
+  - name: garage_two_vehicles
+    image: images/20260613_155852.jpg
+    scan_regions: []
+    vehicle_classes: [car, truck, bus]
+    detection_confidence: 0.3
+    expected_count: 2
+
 clahe_cases:
   - name: bright_colorful
     saturation: 120

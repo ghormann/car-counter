@@ -81,7 +81,7 @@ def main():
         cooldown_seconds=app_config.image_save_cooldown_seconds,
     )
 
-    current_count = -1
+    current_count = 0
     last_publish_time = 0.0
     startup_image_saved = False
 

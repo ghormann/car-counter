@@ -216,6 +216,37 @@ class TestScanRegions:
         assert d._is_in_scan_regions((510, 510, 560, 560)) is True
 
 
+class TestRealImageDetection:
+    @pytest.mark.parametrize("case", TEST_CASES['detection_cases'], ids=lambda c: c['name'])
+    def test_detects_expected_vehicle_count(self, case):
+        image_path = Path(__file__).parent / 'data' / case['image']
+        frame = cv2.imread(str(image_path))
+        assert frame is not None, f"Could not load test image: {image_path}"
+
+        scan_regions = [
+            ScanRegion(x=r['x'], y=r['y'], width=r['width'], height=r['height'])
+            for r in case.get('scan_regions', [])
+        ]
+        detector = Detector(
+            model_path='yolov8n.pt',
+            vehicle_classes=case.get('vehicle_classes', ['car', 'truck', 'bus']),
+            detection_confidence=case.get('detection_confidence', 0.4),
+            iou_threshold=0.5,
+            stationary_seconds=1,
+            target_fps=1,
+            night_enhancement=False,
+            night_brightness_threshold=80,
+            ir_saturation_threshold=30,
+            scan_regions=scan_regions,
+        )
+
+        detections = detector._run_inference(frame)
+        assert len(detections) == case['expected_count'], (
+            f"Expected {case['expected_count']} vehicles, got {len(detections)}: "
+            + ", ".join(f"{d.class_name}@{d.confidence:.2f}" for d in detections)
+        )
+
+
 class TestRunInference:
     def test_filters_by_vehicle_class(self):
         d = make_detector(vehicle_classes=['car'], detection_confidence=0.4)
