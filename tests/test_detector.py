@@ -429,3 +429,89 @@ class TestGenerateTiles:
         for x, y, w, h in tiles:
             assert x + w <= 1920
             assert y + h <= 1080
+
+
+class TestTiledInference:
+    def _make_mock_result(self, boxes_data):
+        """boxes_data: list of (x1,y1,x2,y2, conf, cls_id)"""
+        mock_result = MagicMock()
+        mock_boxes = []
+        for x1, y1, x2, y2, conf, cls_id in boxes_data:
+            b = MagicMock()
+            b.xyxy = [np.array([x1, y1, x2, y2], dtype=np.float32)]
+            b.conf = [np.float32(conf)]
+            b.cls = [np.float32(cls_id)]
+            mock_boxes.append(b)
+        mock_result.boxes = mock_boxes
+        return mock_result
+
+    def test_tiling_disabled_runs_single_inference(self):
+        d = make_detector(vehicle_classes=['car'], detection_confidence=0.3)
+        frame = np.zeros((480, 640, 3), dtype=np.uint8)
+        result = self._make_mock_result([(10, 10, 100, 100, 0.9, 2)])
+        d._model.return_value = [result]
+        d._model.names = {2: 'car'}
+
+        detections = d._run_inference(frame)
+        assert d._model.call_count == 1
+        assert len(detections) == 1
+
+    def test_tiling_enabled_runs_tile_plus_fullframe(self):
+        # 1280-wide frame, 640-wide tiles, no overlap → 2 tiles + 1 full = 3 calls
+        d = make_detector(
+            vehicle_classes=['car'], detection_confidence=0.3,
+            tile_width=640, tile_height=480, tile_overlap=0.0,
+        )
+        frame = np.zeros((480, 1280, 3), dtype=np.uint8)
+        empty_result = self._make_mock_result([])
+        d._model.return_value = [empty_result]
+        d._model.names = {2: 'car'}
+
+        d._run_inference(frame)
+        assert d._model.call_count == 3  # 2 tiles + 1 full frame
+
+    def test_tile_detections_remapped_to_full_frame_coords(self):
+        # Tile starts at x=640, y=0; detection at tile-local (10,10,100,100)
+        # Should appear at full-frame (650,10,740,100)
+        d = make_detector(
+            vehicle_classes=['car'], detection_confidence=0.3,
+            tile_width=640, tile_height=480, tile_overlap=0.0,
+        )
+        frame = np.zeros((480, 1280, 3), dtype=np.uint8)
+        empty_result = self._make_mock_result([])
+        tile_result = self._make_mock_result([(10, 10, 100, 100, 0.9, 2)])
+        d._model.names = {2: 'car'}
+
+        call_count = 0
+        def side_effect(crop, verbose=False):
+            nonlocal call_count
+            call_count += 1
+            # Third call is the right tile (x=640): 1=full frame, 2=left tile, 3=right tile
+            if call_count == 3:
+                return [tile_result]
+            return [empty_result]
+
+        d._model.side_effect = side_effect
+
+        detections = d._run_inference(frame)
+        car_detections = [det for det in detections if det.class_name == 'car']
+        assert len(car_detections) == 1
+        x1, y1, x2, y2 = car_detections[0].box
+        assert x1 == pytest.approx(650)
+        assert x2 == pytest.approx(740)
+
+    def test_overlapping_tile_detections_deduplicated(self):
+        # Same vehicle detected in two overlapping tiles → NMS keeps only one
+        d = make_detector(
+            vehicle_classes=['car'], detection_confidence=0.3,
+            iou_threshold=0.5,
+            tile_width=640, tile_height=480, tile_overlap=0.5,
+        )
+        frame = np.zeros((480, 640, 3), dtype=np.uint8)
+        # Both tiles produce nearly the same box; should collapse to 1
+        dup_result = self._make_mock_result([(10, 10, 100, 100, 0.9, 2)])
+        d._model.return_value = [dup_result]
+        d._model.names = {2: 'car'}
+
+        detections = d._run_inference(frame)
+        assert len(detections) == 1

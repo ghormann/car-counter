@@ -111,8 +111,25 @@ class Detector:
         return cv2.cvtColor(sharpened, cv2.COLOR_GRAY2BGR)
 
     def _run_inference(self, frame: np.ndarray) -> list[Detection]:
-        results = self._model(frame, verbose=False)
-        candidates = []
+        height, width = frame.shape[:2]
+        candidates = self._infer_on_crop(frame, offset_x=0, offset_y=0)
+
+        for x, y, w, h in self._generate_tiles(height=height, width=width):
+            tile = frame[y:y + h, x:x + w]
+            tile_detections = self._infer_on_crop(tile, offset_x=x, offset_y=y)
+            candidates.extend(tile_detections)
+
+        candidates.sort(key=lambda d: d.confidence, reverse=True)
+        kept: list[Detection] = []
+        for candidate in candidates:
+            if not any(self._compute_iou(candidate.box, k.box) >= self._iou_threshold for k in kept):
+                kept.append(candidate)
+
+        return [d for d in kept if self._is_in_scan_regions(d.box)]
+
+    def _infer_on_crop(self, crop: np.ndarray, offset_x: int, offset_y: int) -> list[Detection]:
+        results = self._model(crop, verbose=False)
+        detections = []
         for result in results:
             for box in result.boxes:
                 x1, y1, x2, y2 = [float(v) for v in box.xyxy[0].tolist()]
@@ -120,14 +137,12 @@ class Detector:
                 class_id = int(box.cls[0])
                 class_name = self._model.names[class_id]
                 if class_name in self._vehicle_classes and conf >= self._detection_confidence:
-                    if self._is_in_scan_regions((x1, y1, x2, y2)):
-                        candidates.append(Detection(box=(x1, y1, x2, y2), class_name=class_name, confidence=conf))
-        candidates.sort(key=lambda d: d.confidence, reverse=True)
-        kept: list[Detection] = []
-        for candidate in candidates:
-            if not any(self._compute_iou(candidate.box, k.box) >= self._iou_threshold for k in kept):
-                kept.append(candidate)
-        return kept
+                    detections.append(Detection(
+                        box=(x1 + offset_x, y1 + offset_y, x2 + offset_x, y2 + offset_y),
+                        class_name=class_name,
+                        confidence=conf,
+                    ))
+        return detections
 
     def _update_tracker(self, detections: list[Detection]):
         matched_indices: set[int] = set()
