@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 import pytest
-from pathlib import Path
 
 
 def _make_bgr_from_hsv(hue, saturation, value, height=480, width=640):
