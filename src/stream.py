@@ -1,3 +1,4 @@
+"""Background thread that reads frames from an RTSPS stream with exponential-backoff reconnection."""
 import cv2
 import threading
 import time

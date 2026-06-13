@@ -1,3 +1,4 @@
+"""Entry point for the car-counter service: wires together stream, detector, MQTT, and metrics."""
 import logging
 import os
 import signal

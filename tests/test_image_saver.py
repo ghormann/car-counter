@@ -1,3 +1,4 @@
+"""Tests for ImageSaver: file output, cooldown enforcement, and bounding-box annotation."""
 import time
 import numpy as np
 import cv2

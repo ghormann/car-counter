@@ -1,3 +1,4 @@
+"""Saves annotated frames to disk when stationary vehicles are detected, with a per-camera cooldown."""
 import logging
 import time
 from datetime import datetime, timezone

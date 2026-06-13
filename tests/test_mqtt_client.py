@@ -1,3 +1,4 @@
+"""Tests for MqttClient: connection lifecycle, queue draining, reconnection, and publish ordering."""
 import json
 import time
 import threading

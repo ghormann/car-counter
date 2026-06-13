@@ -1,3 +1,4 @@
+"""YOLOv8-based vehicle detector with IoU tracking, scan/ignore regions, and night enhancement."""
 import math
 import logging
 from dataclasses import dataclass

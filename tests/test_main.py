@@ -1,3 +1,4 @@
+"""Tests for the __main__ entry point: UTC timestamp formatting and main-loop integration."""
 import pytest
 from unittest.mock import patch
 from src.__main__ import _utcnow

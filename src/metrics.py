@@ -1,3 +1,4 @@
+"""Prometheus metrics registry and HTTP /metrics endpoint for the car-counter service."""
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 

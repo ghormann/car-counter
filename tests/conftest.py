@@ -1,3 +1,4 @@
+"""Shared pytest fixtures: synthetic frames (bright color, dim color, IR) for detector tests."""
 import numpy as np
 import cv2
 import pytest

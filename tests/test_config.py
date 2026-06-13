@@ -1,3 +1,4 @@
+"""Tests for config loading: valid/invalid YAML app configs and JSON MQTT credentials."""
 import json
 import pytest
 import yaml

@@ -1,3 +1,4 @@
+"""Configuration dataclasses and loaders for app settings (YAML) and MQTT credentials (JSON)."""
 import json
 import yaml
 from dataclasses import dataclass

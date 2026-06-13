@@ -1,3 +1,4 @@
+"""Tests for Prometheus metrics: counter/gauge updates and /metrics HTTP endpoint response."""
 import time
 import urllib.request
 import urllib.error

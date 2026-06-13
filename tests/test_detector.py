@@ -1,3 +1,4 @@
+"""Tests for Detector: IoU tracking, scan/ignore region filtering, night enhancement, and YOLO inference."""
 import math
 import numpy as np
 import cv2

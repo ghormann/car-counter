@@ -1,3 +1,4 @@
+"""Tests for FrameStream: backoff logic, frame capture, disconnect/reconnect callbacks."""
 import threading
 import time
 import numpy as np

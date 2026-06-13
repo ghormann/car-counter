@@ -1,3 +1,4 @@
+"""Async MQTT client with an in-memory queue and automatic reconnection for publishing vehicle counts."""
 import json
 import logging
 import threading
