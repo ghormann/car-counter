@@ -59,5 +59,7 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         platforms: linux/amd64,linux/arm64
-        cache-from: type=gha
+        cache-from: |
+          type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          type=gha
         cache-to: type=gha,mode=max
