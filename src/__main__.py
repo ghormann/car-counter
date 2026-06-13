@@ -71,6 +71,7 @@ def main():
         target_fps=app_config.target_fps,
         night_enhancement=app_config.night_enhancement,
         scan_regions=app_config.scan_regions,
+        ignore_regions=app_config.ignore_regions,
     )
 
     image_saver = ImageSaver(

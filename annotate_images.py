@@ -20,6 +20,7 @@ detector = Detector(
     target_fps=1,
     night_enhancement=True,
     scan_regions=[],
+    ignore_regions=[],
 )
 
 for filename in NEW_IMAGES:

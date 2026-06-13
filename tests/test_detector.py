@@ -6,7 +6,7 @@ import yaml
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from src.config import ScanRegion
+from src.config import ScanRegion, IgnoreRegion
 from src.detector import Detector, Detection, TrackedVehicle
 
 
@@ -26,6 +26,7 @@ def test_detector_constructs_without_threshold_params():
             target_fps=1,
             night_enhancement=True,
             scan_regions=[],
+            ignore_regions=[],
         )
     assert d is not None
 
@@ -46,6 +47,7 @@ def make_detector(**kwargs):
         target_fps=1,
         night_enhancement=True,
         scan_regions=[],
+        ignore_regions=[],
     )
     defaults.update(kwargs)
     with patch('src.detector.YOLO'):
@@ -264,6 +266,50 @@ class TestScanRegions:
         assert d._is_in_scan_regions((510, 510, 560, 560)) is True
 
 
+class TestIgnoreRegions:
+    def test_no_ignore_regions_does_not_suppress(self):
+        d = make_detector(ignore_regions=[])
+        assert d._is_in_ignore_regions((0, 0, 100, 100)) is False
+
+    def test_vehicle_fully_inside_ignore_region_is_suppressed(self):
+        region = IgnoreRegion(x=0, y=0, width=200, height=200)
+        d = make_detector(ignore_regions=[region])
+        # box entirely inside: 100% overlap
+        assert d._is_in_ignore_regions((10, 10, 190, 190)) is True
+
+    def test_vehicle_exactly_95_percent_inside_is_suppressed(self):
+        # region covers x=0..200, y=0..200 (area 40000)
+        # box: x=0..200, y=0..200 (area=40000), but shift so 95% overlaps
+        # box x=0..200, y=0..200 (area=40000); region x=0..190, y=0..211 (> 95%)
+        region = IgnoreRegion(x=0, y=0, width=200, height=200)
+        d = make_detector(ignore_regions=[region])
+        # box: x=0..200, y=0..200 (area 40000)
+        # intersection with region (0..200, 0..200): 40000 => 100%
+        assert d._is_in_ignore_regions((0, 0, 200, 200)) is True
+
+    def test_vehicle_94_percent_inside_is_not_suppressed(self):
+        # region: x=0..100, y=0..100 (area 10000)
+        # box: x=0..100, y=0..106 (area 10600)
+        # intersection: x=0..100, y=0..100 => 10000
+        # coverage: 10000 / 10600 = 0.943... < 0.95 → not suppressed
+        region = IgnoreRegion(x=0, y=0, width=100, height=100)
+        d = make_detector(ignore_regions=[region])
+        assert d._is_in_ignore_regions((0, 0, 100, 106)) is False
+
+    def test_vehicle_95_percent_inside_one_of_multiple_regions_is_suppressed(self):
+        regions = [
+            IgnoreRegion(x=500, y=500, width=100, height=100),
+            IgnoreRegion(x=0, y=0, width=200, height=200),
+        ]
+        d = make_detector(ignore_regions=regions)
+        assert d._is_in_ignore_regions((10, 10, 190, 190)) is True
+
+    def test_vehicle_outside_all_ignore_regions_is_not_suppressed(self):
+        region = IgnoreRegion(x=500, y=500, width=100, height=100)
+        d = make_detector(ignore_regions=[region])
+        assert d._is_in_ignore_regions((0, 0, 100, 100)) is False
+
+
 class TestRealImageDetection:
     @pytest.mark.parametrize("case", TEST_CASES['detection_cases'], ids=lambda c: c['name'])
     def test_detects_expected_vehicle_count(self, case):
@@ -284,6 +330,7 @@ class TestRealImageDetection:
             target_fps=1,
             night_enhancement=case.get('night_enhancement', False),
             scan_regions=scan_regions,
+            ignore_regions=[],
         )
 
         count, vehicles = detector.process_frame(frame)

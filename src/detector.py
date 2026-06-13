@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 
-from src.config import ScanRegion
+from src.config import ScanRegion, IgnoreRegion
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +40,7 @@ class Detector:
         target_fps: int,
         night_enhancement: bool,
         scan_regions: list[ScanRegion],
+        ignore_regions: list[IgnoreRegion],
     ):
         self._model = YOLO(model_path)
         self._vehicle_classes = vehicle_classes
@@ -48,6 +49,7 @@ class Detector:
         self._required_frames = math.ceil(stationary_seconds * target_fps)
         self._night_enhancement = night_enhancement
         self._scan_regions = scan_regions
+        self._ignore_regions = ignore_regions
         self._tracked: list[TrackedVehicle] = []
 
     def process_frame(self, frame: np.ndarray) -> tuple[int, list[TrackedVehicle]]:
@@ -95,7 +97,7 @@ class Detector:
                 class_id = int(box.cls[0])
                 class_name = self._model.names[class_id]
                 if class_name in self._vehicle_classes and conf >= self._detection_confidence:
-                    if self._is_in_scan_regions((x1, y1, x2, y2)):
+                    if self._is_in_scan_regions((x1, y1, x2, y2)) and not self._is_in_ignore_regions((x1, y1, x2, y2)):
                         candidates.append(Detection(box=(x1, y1, x2, y2), class_name=class_name, confidence=conf))
         candidates.sort(key=lambda d: d.confidence, reverse=True)
         kept: list[Detection] = []
@@ -156,5 +158,24 @@ class Detector:
             rx1, ry1 = region.x, region.y
             rx2, ry2 = region.x + region.width, region.y + region.height
             if x2 > rx1 and x1 < rx2 and y2 > ry1 and y1 < ry2:
+                return True
+        return False
+
+    def _is_in_ignore_regions(self, box: tuple) -> bool:
+        if not self._ignore_regions:
+            return False
+        x1, y1, x2, y2 = box
+        vehicle_area = (x2 - x1) * (y2 - y1)
+        if vehicle_area <= 0:
+            return False
+        for region in self._ignore_regions:
+            rx1, ry1 = region.x, region.y
+            rx2, ry2 = region.x + region.width, region.y + region.height
+            ix1 = max(x1, rx1)
+            iy1 = max(y1, ry1)
+            ix2 = min(x2, rx2)
+            iy2 = min(y2, ry2)
+            inter = max(0.0, ix2 - ix1) * max(0.0, iy2 - iy1)
+            if inter / vehicle_area >= 0.95:
                 return True
         return False
