@@ -20,6 +20,9 @@ detector = Detector(
     target_fps=1,
     night_enhancement=True,
     scan_regions=[],
+    tile_width=640,
+    tile_height=640,
+    tile_overlap=0.2,
 )
 
 for filename in NEW_IMAGES:
