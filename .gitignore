@@ -9,3 +9,4 @@ build/
 env
 output
 yolov*.pt
+annotated*
