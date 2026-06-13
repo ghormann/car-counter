@@ -75,6 +75,14 @@ class Detector:
         lab_eq = cv2.merge([clahe.apply(l_ch), a_ch, b_ch])
         return cv2.cvtColor(lab_eq, cv2.COLOR_LAB2BGR)
 
+    def _apply_ir_enhancement(self, frame: np.ndarray) -> np.ndarray:
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        clahe = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(8, 8))
+        eq = clahe.apply(gray)
+        blurred = cv2.GaussianBlur(eq, (0, 0), 3)
+        sharpened = cv2.addWeighted(eq, 1.5, blurred, -0.5, 0)
+        return cv2.cvtColor(sharpened, cv2.COLOR_GRAY2BGR)
+
     def _run_inference(self, frame: np.ndarray) -> list[Detection]:
         results = self._model(frame, verbose=False)
         detections = []

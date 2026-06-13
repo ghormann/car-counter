@@ -108,6 +108,26 @@ class TestEnhancement:
                 detector.process_frame(dim_color_frame)
         mock.assert_called_once()
 
+    def test_apply_ir_enhancement_returns_same_shape(self):
+        d = make_detector()
+        ir_frame = make_bgr_from_hsv(saturation=0, brightness=50)
+        result = d._apply_ir_enhancement(ir_frame)
+        assert result.shape == ir_frame.shape
+        assert result.dtype == np.uint8
+
+    def test_apply_ir_enhancement_brightens_dark_ir_frame(self):
+        d = make_detector()
+        ir_frame = make_bgr_from_hsv(saturation=0, brightness=50)
+        result = d._apply_ir_enhancement(ir_frame)
+        assert np.mean(result) > np.mean(ir_frame)
+
+    def test_apply_ir_enhancement_does_not_modify_original(self):
+        d = make_detector()
+        ir_frame = make_bgr_from_hsv(saturation=0, brightness=50)
+        original_copy = ir_frame.copy()
+        d._apply_ir_enhancement(ir_frame)
+        np.testing.assert_array_equal(ir_frame, original_copy)
+
 
 class TestComputeIou:
     def test_identical_boxes_return_1(self):
