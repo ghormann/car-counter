@@ -355,3 +355,40 @@ class TestRunInference:
 
         detections = d._run_inference(np.zeros((480, 640, 3), dtype=np.uint8))
         assert len(detections) == 0
+
+
+class TestTilingInit:
+    def test_detector_accepts_tiling_params(self):
+        with patch('src.detector.YOLO'):
+            d = Detector(
+                model_path='yolov8x.pt',
+                vehicle_classes=['car'],
+                detection_confidence=0.3,
+                iou_threshold=0.5,
+                stationary_seconds=3,
+                target_fps=1,
+                night_enhancement=True,
+                scan_regions=[],
+                tile_width=640,
+                tile_height=640,
+                tile_overlap=0.2,
+            )
+        assert d._tile_width == 640
+        assert d._tile_height == 640
+        assert d._tile_overlap == pytest.approx(0.2)
+
+    def test_detector_tiling_defaults_to_none(self):
+        with patch('src.detector.YOLO'):
+            d = Detector(
+                model_path='yolov8x.pt',
+                vehicle_classes=['car'],
+                detection_confidence=0.3,
+                iou_threshold=0.5,
+                stationary_seconds=3,
+                target_fps=1,
+                night_enhancement=True,
+                scan_regions=[],
+            )
+        assert d._tile_width is None
+        assert d._tile_height is None
+        assert d._tile_overlap is None

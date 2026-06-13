@@ -71,6 +71,9 @@ def main():
         target_fps=app_config.target_fps,
         night_enhancement=app_config.night_enhancement,
         scan_regions=app_config.scan_regions,
+        tile_width=app_config.tile_width,
+        tile_height=app_config.tile_height,
+        tile_overlap=app_config.tile_overlap,
     )
 
     image_saver = ImageSaver(

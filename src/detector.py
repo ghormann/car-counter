@@ -38,6 +38,9 @@ class Detector:
         target_fps: int,
         night_enhancement: bool,
         scan_regions: list[ScanRegion],
+        tile_width: int | None = None,
+        tile_height: int | None = None,
+        tile_overlap: float | None = None,
     ):
         self._model = YOLO(model_path)
         self._vehicle_classes = vehicle_classes
@@ -47,6 +50,9 @@ class Detector:
         self._night_enhancement = night_enhancement
         self._scan_regions = scan_regions
         self._tracked: list[TrackedVehicle] = []
+        self._tile_width = tile_width
+        self._tile_height = tile_height
+        self._tile_overlap = tile_overlap
 
     def process_frame(self, frame: np.ndarray) -> tuple[int, list[TrackedVehicle]]:
         if self._night_enhancement:
