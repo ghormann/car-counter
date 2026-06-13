@@ -9,7 +9,7 @@ services:
     volumes:
       - ./config/app-config.yaml:/config/app/config.yaml:ro
       - ./config/mqtt-config.json:/config/mqtt/config.json:ro
-      - ~/output:/output
+      - ./output:/output
     ports:
       - "9600:9600"
     restart: unless-stopped
