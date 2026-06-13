@@ -1,11 +1,11 @@
 """One-shot script to annotate vlcsnap images with detected vehicle bounding boxes."""
 import sys
 import cv2
-import numpy as np
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from src.detector import Detector
+from src.detector import Detector, TrackedVehicle
+from src.image_saver import ImageSaver
 
 IMAGES_DIR = Path("tests/data/images")
 NEW_IMAGES = [p.name for p in IMAGES_DIR.iterdir()
@@ -37,13 +37,11 @@ for filename in NEW_IMAGES:
         enhanced = frame.copy()
     detections = detector._run_inference(enhanced)
 
-    annotated = frame.copy()
-    for det in detections:
-        x1, y1, x2, y2 = [int(v) for v in det.box]
-        cv2.rectangle(annotated, (x1, y1), (x2, y2), (0, 255, 0), 2)
-        label = f"{det.class_name} {det.confidence:.2f}"
-        cv2.putText(annotated, label, (x1, max(y1 - 6, 12)),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+    vehicles = [
+        TrackedVehicle(box=det.box, frames=1, class_name=det.class_name, confidence=det.confidence)
+        for det in detections
+    ]
+    annotated = ImageSaver._annotate(frame.copy(), vehicles, scan_regions=[])
 
     out_path = IMAGES_DIR / f"annotated_{filename}"
     cv2.imwrite(str(out_path), annotated)

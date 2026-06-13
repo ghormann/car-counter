@@ -65,20 +65,36 @@ class ImageSaver:
         logger.info("Saved image: %s", path)
         return path
 
+    @staticmethod
     def _annotate(
-        self,
         frame: np.ndarray,
         stationary_vehicles: list[TrackedVehicle],
         scan_regions: list[ScanRegion],
     ) -> np.ndarray:
         frame = frame.copy()
+        font = cv2.FONT_HERSHEY_SIMPLEX
+
         for vehicle in stationary_vehicles:
             x1, y1, x2, y2 = (int(c) for c in vehicle.box)
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)  # Red
+            label = f"{vehicle.class_name} {vehicle.confidence:.2f}"
+            (lw, lh), baseline = cv2.getTextSize(label, font, 0.5, 1)
+            ly = max(y1 - 4, lh + baseline)
+            cv2.rectangle(frame, (x1, ly - lh - baseline), (x1 + lw, ly), (0, 0, 255), cv2.FILLED)
+            cv2.putText(frame, label, (x1, ly - baseline), font, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
 
         for region in scan_regions:
             x1, y1 = region.x, region.y
             x2, y2 = region.x + region.width, region.y + region.height
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)  # Green
+
+        total = len(stationary_vehicles)
+        summary = f"Vehicles detected: {total}"
+        (sw, sh), baseline = cv2.getTextSize(summary, font, 0.8, 2)
+        h, w = frame.shape[:2]
+        sx = (w - sw) // 2
+        sy = h - 20
+        cv2.rectangle(frame, (sx - 4, sy - sh - baseline), (sx + sw + 4, sy + baseline), (0, 0, 0), cv2.FILLED)
+        cv2.putText(frame, summary, (sx, sy), font, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
 
         return frame

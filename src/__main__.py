@@ -139,8 +139,10 @@ def main():
             image_saver.save(frame, [], app_config.scan_regions, prefix="startup_")
             startup_image_saved = True
 
+        t0 = time.monotonic()
         with metrics.frame_processing_seconds.time():
             count, stationary_vehicles = detector.process_frame(frame)
+        processing_seconds = round(time.monotonic() - t0, 3)
 
         metrics.frames_processed.inc()
         metrics.stationary_vehicles.set(count)
@@ -159,6 +161,7 @@ def main():
                 "count": count,
                 "timestamp": _utcnow(),
                 "status": current_status,
+                "processing_seconds": processing_seconds,
             })
             metrics.mqtt_messages_published.inc()
             last_publish_time = now
@@ -174,6 +177,7 @@ def main():
                 "count": current_count,
                 "timestamp": _utcnow(),
                 "status": current_status,
+                "processing_seconds": processing_seconds,
             })
             metrics.mqtt_messages_published.inc()
             last_publish_time = now

@@ -25,6 +25,8 @@ class Detection:
 class TrackedVehicle:
     box: tuple[float, float, float, float]  # x1, y1, x2, y2
     frames: int
+    class_name: str = ""
+    confidence: float = 0.0
 
 
 class Detector:
@@ -122,9 +124,16 @@ class Detector:
                 new_tracked.append(TrackedVehicle(
                     box=detection.box,
                     frames=self._tracked[best_idx].frames + 1,
+                    class_name=detection.class_name,
+                    confidence=detection.confidence,
                 ))
             else:
-                new_tracked.append(TrackedVehicle(box=detection.box, frames=1))
+                new_tracked.append(TrackedVehicle(
+                    box=detection.box,
+                    frames=1,
+                    class_name=detection.class_name,
+                    confidence=detection.confidence,
+                ))
 
         self._tracked = new_tracked
 
