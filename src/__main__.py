@@ -70,8 +70,6 @@ def main():
         stationary_seconds=app_config.stationary_seconds,
         target_fps=app_config.target_fps,
         night_enhancement=app_config.night_enhancement,
-        night_brightness_threshold=app_config.night_brightness_threshold,
-        ir_saturation_threshold=app_config.ir_saturation_threshold,
         scan_regions=app_config.scan_regions,
     )
 

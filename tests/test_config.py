@@ -14,8 +14,6 @@ VALID_APP_DATA = {
     'stationary_seconds': 3,
     'iou_threshold': 0.5,
     'night_enhancement': True,
-    'night_brightness_threshold': 80,
-    'ir_saturation_threshold': 30,
     'target_fps': 1,
     'model_path': 'yolov8n.pt',
     'publish_interval_seconds': 5,
@@ -88,7 +86,7 @@ class TestLoadAppConfig:
 
     @pytest.mark.parametrize("missing_field", [
         'camera_name', 'rtsps_url', 'vehicle_classes', 'detection_confidence',
-        'stationary_seconds', 'iou_threshold', 'target_fps', 'model_path',
+        'stationary_seconds', 'iou_threshold', 'night_enhancement', 'target_fps', 'model_path',
         'publish_interval_seconds', 'mqtt_timeout_seconds', 'mqtt_topic',
         'output_dir', 'image_save_cooldown_seconds',
     ])

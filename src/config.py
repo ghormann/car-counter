@@ -22,8 +22,6 @@ class AppConfig:
     stationary_seconds: int
     iou_threshold: float
     night_enhancement: bool
-    night_brightness_threshold: int
-    ir_saturation_threshold: int
     target_fps: int
     model_path: str
     publish_interval_seconds: int
@@ -44,8 +42,7 @@ class MqttConfig:
 _REQUIRED_APP_FIELDS = [
     'camera_name', 'rtsps_url', 'vehicle_classes', 'detection_confidence',
     'stationary_seconds', 'iou_threshold', 'night_enhancement',
-    'night_brightness_threshold', 'ir_saturation_threshold', 'target_fps',
-    'model_path', 'publish_interval_seconds', 'mqtt_timeout_seconds',
+    'target_fps', 'model_path', 'publish_interval_seconds', 'mqtt_timeout_seconds',
     'mqtt_topic', 'output_dir', 'image_save_cooldown_seconds',
 ]
 
@@ -88,8 +85,6 @@ def load_app_config(path: str) -> AppConfig:
         stationary_seconds=int(data['stationary_seconds']),
         iou_threshold=float(data['iou_threshold']),
         night_enhancement=bool(data['night_enhancement']),
-        night_brightness_threshold=int(data['night_brightness_threshold']),
-        ir_saturation_threshold=int(data['ir_saturation_threshold']),
         target_fps=int(data['target_fps']),
         model_path=str(data['model_path']),
         publish_interval_seconds=int(data['publish_interval_seconds']),
