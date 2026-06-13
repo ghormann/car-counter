@@ -29,6 +29,9 @@ class AppConfig:
     mqtt_topic: str
     output_dir: Path
     image_save_cooldown_seconds: int
+    tile_width: int | None = None
+    tile_height: int | None = None
+    tile_overlap: float | None = None
 
 
 @dataclass
@@ -92,6 +95,9 @@ def load_app_config(path: str) -> AppConfig:
         mqtt_topic=str(data['mqtt_topic']),
         output_dir=output_dir,
         image_save_cooldown_seconds=int(data['image_save_cooldown_seconds']),
+        tile_width=int(data['tile_width']) if 'tile_width' in data else None,
+        tile_height=int(data['tile_height']) if 'tile_height' in data else None,
+        tile_overlap=float(data['tile_overlap']) if 'tile_overlap' in data else None,
     )
 
 
