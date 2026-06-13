@@ -14,8 +14,6 @@ iou_threshold: 0.5
 
 # Night / low-light enhancement
 night_enhancement: true
-night_brightness_threshold: 80
-ir_saturation_threshold: 30
 
 # Frame processing
 target_fps: 1

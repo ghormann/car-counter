@@ -17,10 +17,12 @@ Monitor RTSPS camera feeds and count stationary motor vehicles (cars, trucks, bu
 - If no scan regions are configured, scan the entire frame
 
 ### Night / Low-Light Detection
-- Apply **CLAHE** (adaptive histogram equalization) preprocessing to improve detection during twilight transitions
-- CLAHE activates when mean frame brightness < `night_brightness_threshold` (default: 80, range 0–255) **and** mean color saturation ≥ `ir_saturation_threshold` (default: 30, range 0–255)
-- When IR mode is active (saturation < `ir_saturation_threshold`), skip CLAHE — the camera's IR illumination is already handling the scene
-- Both thresholds are evaluated per-frame automatically; no time-of-day logic is used
+- Apply preprocessing to improve detection in low-light conditions; controlled by `night_enhancement` config flag
+- Two enhancement paths, selected automatically per frame:
+  - **Dark color frame** (mean brightness < 80, mean saturation ≥ 30): CLAHE on the LAB L-channel (`clipLimit=2.0`)
+  - **Dark IR frame** (mean brightness < 80, mean saturation < 30): grayscale CLAHE (`clipLimit=4.0`) followed by unsharp masking to recover edge detail
+- Brightness and saturation thresholds are internal constants, not operator-tunable
+- All detection per-frame automatically; no time-of-day logic is used
 
 ### Frame Processing
 - Read all frames from the RTSPS stream continuously to keep the buffer clear
@@ -111,8 +113,6 @@ iou_threshold: 0.5                             # IoU overlap required to match v
 
 # Night / low-light enhancement
 night_enhancement: true                        # Enable CLAHE preprocessing for low-light frames
-night_brightness_threshold: 80                 # Mean brightness (0–255) below which CLAHE is applied
-ir_saturation_threshold: 30                    # Mean saturation (0–255) below which IR mode is assumed (CLAHE skipped)
 
 # Frame processing
 target_fps: 1                                  # Frames to process per second (read all, process at this rate)
