@@ -289,7 +289,7 @@ class TestRealImageDetection:
         count, vehicles = detector.process_frame(frame)
         assert count == case['expected_count'], (
             f"Expected {case['expected_count']} vehicles, got {count}: "
-            + ", ".join(f"{v.box}" for v in vehicles)
+            + ", ".join(f"box=({v.box[0]:.0f},{v.box[1]:.0f},{v.box[2]:.0f},{v.box[3]:.0f}) frames={v.frames}" for v in vehicles)
         )
 
 
