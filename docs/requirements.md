@@ -9,7 +9,7 @@ Monitor RTSPS camera feeds and count stationary motor vehicles (cars, trucks, bu
 ## Functional Requirements
 
 ### Vehicle Detection
-- Use **YOLOv8l** (large) via the `ultralytics` library for object detection; YOLOv8n is insufficient for night IR classification
+- Use **YOLOv8x** (extra-large) via the `ultralytics` library for object detection; smaller variants are insufficient for night IR classification
 - Detect these COCO classes only: `car`, `truck`, `bus` (configurable via YAML)
 - Default confidence threshold: `0.4` (configurable); lower than typical to accommodate night conditions
 - Only count **stationary** vehicles: a vehicle must be continuously detected with IoU ≥ 0.5 overlap across frames for at least `stationary_seconds` (default: 3s, configurable)
@@ -118,7 +118,7 @@ night_enhancement: true                        # Enable CLAHE preprocessing for 
 target_fps: 1                                  # Frames to process per second (read all, process at this rate)
 
 # Model
-model_path: yolov8l.pt                         # Path to YOLOv8 weights file (baked into Docker image)
+model_path: yolov8x.pt                         # Path to YOLOv8 weights file (baked into Docker image)
 
 # MQTT
 publish_interval_seconds: 5                    # Heartbeat publish interval when count has not changed

@@ -19,7 +19,7 @@ night_enhancement: true
 target_fps: 1
 
 # Model
-model_path: yolov8l.pt
+model_path: yolov8x.pt
 
 # MQTT
 publish_interval_seconds: 5
