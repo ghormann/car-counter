@@ -276,7 +276,7 @@ class TestRealImageDetection:
             for r in case.get('scan_regions', [])
         ]
         detector = Detector(
-            model_path='yolov8n.pt',
+            model_path='yolov8l.pt',
             vehicle_classes=case.get('vehicle_classes', ['car', 'truck', 'bus']),
             detection_confidence=case.get('detection_confidence', 0.4),
             iou_threshold=0.5,
@@ -316,6 +316,29 @@ class TestRunInference:
 
         assert len(detections) == 1
         assert detections[0].class_name == 'car'
+
+    def test_suppresses_overlapping_cross_class_detections(self):
+        # Same vehicle detected as both car and truck — should count as one
+        d = make_detector(vehicle_classes=['car', 'truck'], detection_confidence=0.4)
+
+        def make_box(x1, y1, x2, y2, conf, cls_id):
+            b = MagicMock()
+            b.xyxy = [np.array([x1, y1, x2, y2], dtype=np.float32)]
+            b.conf = [np.float32(conf)]
+            b.cls = [np.float32(cls_id)]
+            return b
+
+        mock_result = MagicMock()
+        mock_result.boxes = [
+            make_box(0, 0, 100, 100, 0.9, 2),   # car
+            make_box(1, 0, 101, 100, 0.8, 7),   # truck, nearly same box
+        ]
+        d._model.return_value = [mock_result]
+        d._model.names = {2: 'car', 7: 'truck'}
+
+        detections = d._run_inference(np.zeros((480, 640, 3), dtype=np.uint8))
+        assert len(detections) == 1
+        assert detections[0].class_name == 'car'  # higher confidence wins
 
     def test_filters_by_confidence(self):
         d = make_detector(vehicle_classes=['car'], detection_confidence=0.7)

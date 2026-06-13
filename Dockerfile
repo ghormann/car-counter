@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pre-download YOLOv8n weights into the image
-RUN python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"
+# Pre-download YOLOv8l weights into the image
+RUN python -c "from ultralytics import YOLO; YOLO('yolov8l.pt')"
 
 COPY src/ ./src/
 

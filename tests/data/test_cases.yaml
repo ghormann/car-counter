@@ -29,7 +29,7 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
-    expected_count: 1
+    expected_count: 2
 
   - name: night_side_truck
     image: images/night_side.jpg

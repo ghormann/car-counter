@@ -85,7 +85,7 @@ class Detector:
 
     def _run_inference(self, frame: np.ndarray) -> list[Detection]:
         results = self._model(frame, verbose=False)
-        detections = []
+        candidates = []
         for result in results:
             for box in result.boxes:
                 x1, y1, x2, y2 = [float(v) for v in box.xyxy[0].tolist()]
@@ -94,8 +94,13 @@ class Detector:
                 class_name = self._model.names[class_id]
                 if class_name in self._vehicle_classes and conf >= self._detection_confidence:
                     if self._is_in_scan_regions((x1, y1, x2, y2)):
-                        detections.append(Detection(box=(x1, y1, x2, y2), class_name=class_name, confidence=conf))
-        return detections
+                        candidates.append(Detection(box=(x1, y1, x2, y2), class_name=class_name, confidence=conf))
+        candidates.sort(key=lambda d: d.confidence, reverse=True)
+        kept: list[Detection] = []
+        for candidate in candidates:
+            if not any(self._compute_iou(candidate.box, k.box) >= self._iou_threshold for k in kept):
+                kept.append(candidate)
+        return kept
 
     def _update_tracker(self, detections: list[Detection]):
         matched_indices: set[int] = set()

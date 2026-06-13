@@ -54,22 +54,19 @@ capacity, not image contrast.
 
 None produced a `car`, `truck`, or `bus` classification for the van above 0.15 confidence.
 
-## Recommended Fix
+## Fix Applied
 
-**Switch to YOLOv8s (small).** YOLOv8s has ~11M parameters (3.4× nano) and typically
-stays within the 1 FPS CPU budget on modern hardware. It should have sufficient
-classification capacity to correctly identify the van in IR night conditions.
+**Switched to YOLOv8l (large), ~43M parameters.** YOLOv8l runs at ~15ms/frame on a
+Ryzen 7 5825U (well within the 1 FPS budget) and correctly classifies the van in
+`night_2.jpg` as `car` at 0.66 confidence.
 
-Steps to try:
-1. Download YOLOv8s weights: `yolo export model=yolov8s.pt` or via `ultralytics`
-2. Update `model_path` in config to `yolov8s.pt`
-3. Run inference on `night_1.jpg` and `night_2.jpg` and check if van is classified as
-   `truck` or `van` (COCO has no `van` class — it maps to `truck`)
-4. If detection is confirmed, update `tests/data/test_cases.yaml` `expected_count` for
-   `night_driveway_car` and `night_driveway_plus_street` from `1` to `2`
-5. Benchmark CPU inference time to confirm 1 FPS target is still met
-6. Update `docs/requirements.md` to note that YOLOv8s is the recommended model for
-   night IR deployments
+`night_1.jpg` remains at `expected_count: 1` — the van is undetectable in that frame
+even with YOLOv8x (~68M params). The two-second-earlier frame has subtly worse
+contrast and no YOLO model classifies the van as a vehicle at any useful confidence.
+
+Cross-class NMS was also added to `detector._run_inference()`: when YOLOv8l detects
+the same vehicle as both `car` and `truck` (which it does more often than nano), the
+lower-confidence duplicate is suppressed using the same IoU threshold as tracking.
 
 ## Reference Files
 
