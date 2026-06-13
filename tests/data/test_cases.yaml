@@ -6,6 +6,34 @@ detection_cases:
     detection_confidence: 0.3
     expected_count: 2
 
+  - name: daytime_two_vehicles
+    image: images/2_daytime.jpg
+    scan_regions: []
+    vehicle_classes: [car, truck, bus]
+    detection_confidence: 0.3
+    expected_count: 2
+
+  - name: night_driveway_car
+    image: images/night_1.jpg
+    scan_regions: []
+    vehicle_classes: [car, truck, bus]
+    detection_confidence: 0.3
+    expected_count: 1
+
+  - name: night_driveway_plus_street
+    image: images/night_2.jpg
+    scan_regions: []
+    vehicle_classes: [car, truck, bus]
+    detection_confidence: 0.3
+    expected_count: 1
+
+  - name: night_side_truck
+    image: images/night_side.jpg
+    scan_regions: []
+    vehicle_classes: [car, truck, bus]
+    detection_confidence: 0.3
+    expected_count: 1
+
 clahe_cases:
   - name: bright_colorful
     saturation: 120
