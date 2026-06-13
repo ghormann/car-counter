@@ -21,6 +21,11 @@ target_fps: 1
 # Model
 model_path: yolov8l.pt
 
+# Image tiling (improves detection of small/distant vehicles)
+tile_width: 640
+tile_height: 640
+tile_overlap: 0.2
+
 # MQTT
 publish_interval_seconds: 5
 mqtt_timeout_seconds: 60

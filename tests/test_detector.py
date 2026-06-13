@@ -279,14 +279,17 @@ class TestRealImageDetection:
             for r in case.get('scan_regions', [])
         ]
         detector = Detector(
-            model_path='yolov8l.pt',
+            model_path='yolov8x.pt',
             vehicle_classes=case.get('vehicle_classes', ['car', 'truck', 'bus']),
             detection_confidence=case.get('detection_confidence', 0.4),
             iou_threshold=0.5,
             stationary_seconds=1,
             target_fps=1,
-            night_enhancement=case.get('night_enhancement', False),
+            night_enhancement=case.get('night_enhancement', True),
             scan_regions=scan_regions,
+            tile_width=case.get('tile_width'),
+            tile_height=case.get('tile_height'),
+            tile_overlap=case.get('tile_overlap'),
         )
 
         count, vehicles = detector.process_frame(frame)

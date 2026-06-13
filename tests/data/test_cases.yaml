@@ -5,6 +5,9 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
+    tile_width: 640
+    tile_height: 640
+    tile_overlap: 0.2
     expected_count: 2
 
   - name: daytime_two_vehicles
@@ -13,6 +16,9 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
+    tile_width: 640
+    tile_height: 640
+    tile_overlap: 0.2
     expected_count: 2
 
   - name: night_driveway_car
@@ -21,6 +27,9 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
+    tile_width: 640
+    tile_height: 640
+    tile_overlap: 0.2
     expected_count: 1
 
   - name: night_driveway_plus_street
@@ -29,6 +38,9 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
+    tile_width: 640
+    tile_height: 640
+    tile_overlap: 0.2
     expected_count: 2
 
   - name: vlcsnap_13h50m20s365
@@ -37,6 +49,9 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
+    tile_width: 640
+    tile_height: 640
+    tile_overlap: 0.2
     expected_count: 4
 
   - name: vlcsnap_13h50m41s507
@@ -45,6 +60,9 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
+    tile_width: 640
+    tile_height: 640
+    tile_overlap: 0.2
     expected_count: 4
 
   - name: vlcsnap_13h50m49s698
@@ -53,6 +71,9 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
+    tile_width: 640
+    tile_height: 640
+    tile_overlap: 0.2
     expected_count: 4
 
   - name: vlcsnap_13h50m56s751
@@ -61,6 +82,9 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
+    tile_width: 640
+    tile_height: 640
+    tile_overlap: 0.2
     expected_count: 4
 
   - name: vlcsnap_13h51m05s162
@@ -69,6 +93,9 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
+    tile_width: 640
+    tile_height: 640
+    tile_overlap: 0.2
     expected_count: 4
 
   - name: vlcsnap_14h00m07s177
@@ -77,6 +104,9 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
+    tile_width: 640
+    tile_height: 640
+    tile_overlap: 0.2
     expected_count: 4
 
   - name: vlcsnap_14h00m13s515
@@ -85,6 +115,9 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
+    tile_width: 640
+    tile_height: 640
+    tile_overlap: 0.2
     expected_count: 4
 
   - name: vlcsnap_14h00m29s134
@@ -93,6 +126,9 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
+    tile_width: 640
+    tile_height: 640
+    tile_overlap: 0.2
     expected_count: 4
 
   - name: vlcsnap_14h00m39s117
@@ -101,6 +137,9 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
+    tile_width: 640
+    tile_height: 640
+    tile_overlap: 0.2
     expected_count: 4
 
   - name: vlcsnap_14h00m48s284
@@ -109,6 +148,9 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
+    tile_width: 640
+    tile_height: 640
+    tile_overlap: 0.2
     expected_count: 4
 
   - name: vlcsnap_14h01m01s333
@@ -117,6 +159,9 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
+    tile_width: 640
+    tile_height: 640
+    tile_overlap: 0.2
     expected_count: 4
 
   - name: night_side_truck
@@ -125,6 +170,9 @@ detection_cases:
     vehicle_classes: [car, truck, bus]
     detection_confidence: 0.3
     night_enhancement: true
+    tile_width: 640
+    tile_height: 640
+    tile_overlap: 0.2
     expected_count: 1
 
 clahe_cases:
