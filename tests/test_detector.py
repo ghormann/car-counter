@@ -15,6 +15,21 @@ TEST_CASES = yaml.safe_load(
 )
 
 
+def test_detector_constructs_without_threshold_params():
+    with patch('src.detector.YOLO'):
+        d = Detector(
+            model_path='yolov8n.pt',
+            vehicle_classes=['car'],
+            detection_confidence=0.4,
+            iou_threshold=0.5,
+            stationary_seconds=3,
+            target_fps=1,
+            night_enhancement=True,
+            scan_regions=[],
+        )
+    assert d is not None
+
+
 def make_bgr_from_hsv(saturation, brightness, height=480, width=640):
     hsv = np.zeros((height, width, 3), dtype=np.uint8)
     hsv[:, :] = [0, saturation, brightness]
@@ -30,8 +45,6 @@ def make_detector(**kwargs):
         stationary_seconds=3,
         target_fps=1,
         night_enhancement=True,
-        night_brightness_threshold=80,
-        ir_saturation_threshold=30,
         scan_regions=[],
     )
     defaults.update(kwargs)
@@ -235,8 +248,6 @@ class TestRealImageDetection:
             stationary_seconds=1,
             target_fps=1,
             night_enhancement=False,
-            night_brightness_threshold=80,
-            ir_saturation_threshold=30,
             scan_regions=scan_regions,
         )
 

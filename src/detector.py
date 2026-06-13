@@ -10,6 +10,9 @@ from src.config import ScanRegion
 
 logger = logging.getLogger(__name__)
 
+_NIGHT_BRIGHTNESS_THRESHOLD = 80
+_IR_SATURATION_THRESHOLD = 30
+
 
 @dataclass
 class Detection:
@@ -34,8 +37,6 @@ class Detector:
         stationary_seconds: int,
         target_fps: int,
         night_enhancement: bool,
-        night_brightness_threshold: int,
-        ir_saturation_threshold: int,
         scan_regions: list[ScanRegion],
     ):
         self._model = YOLO(model_path)
@@ -44,8 +45,6 @@ class Detector:
         self._iou_threshold = iou_threshold
         self._required_frames = math.ceil(stationary_seconds * target_fps)
         self._night_enhancement = night_enhancement
-        self._night_brightness_threshold = night_brightness_threshold
-        self._ir_saturation_threshold = ir_saturation_threshold
         self._scan_regions = scan_regions
         self._tracked: list[TrackedVehicle] = []
 
@@ -61,8 +60,8 @@ class Detector:
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         mean_brightness = float(np.mean(hsv[:, :, 2]))
         mean_saturation = float(np.mean(hsv[:, :, 1]))
-        is_ir = mean_saturation < self._ir_saturation_threshold
-        is_dark = mean_brightness < self._night_brightness_threshold
+        is_ir = mean_saturation < _IR_SATURATION_THRESHOLD
+        is_dark = mean_brightness < _NIGHT_BRIGHTNESS_THRESHOLD
         return is_dark and not is_ir
 
     def _apply_clahe(self, frame: np.ndarray) -> np.ndarray:
