@@ -137,7 +137,7 @@ def main():
             continue
 
         if not startup_image_saved:
-            image_saver.save(frame, [], app_config.scan_regions, prefix="startup_")
+            image_saver.save(frame, [], app_config.scan_regions, app_config.ignore_regions, prefix="startup_")
             startup_image_saved = True
 
         t0 = time.monotonic()
@@ -167,7 +167,7 @@ def main():
             metrics.mqtt_messages_published.inc()
             last_publish_time = now
 
-            image_saver.save(frame, stationary_vehicles, app_config.scan_regions)
+            image_saver.save(frame, stationary_vehicles, app_config.scan_regions, app_config.ignore_regions)
             metrics.images_saved.inc()
 
             current_count = count

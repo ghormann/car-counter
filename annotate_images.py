@@ -42,7 +42,7 @@ for filename in NEW_IMAGES:
         TrackedVehicle(box=det.box, frames=1, class_name=det.class_name, confidence=det.confidence)
         for det in detections
     ]
-    annotated = ImageSaver._annotate(frame.copy(), vehicles, scan_regions=[])
+    annotated = ImageSaver._annotate(frame.copy(), vehicles, scan_regions=[], ignore_regions=[])
 
     out_path = IMAGES_DIR / f"annotated_{filename}"
     cv2.imwrite(str(out_path), annotated)
