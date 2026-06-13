@@ -1,0 +1,20 @@
+clahe_cases:
+  - name: bright_colorful
+    saturation: 120
+    brightness: 200
+    expect_clahe: false
+
+  - name: dim_colorful
+    saturation: 80
+    brightness: 50
+    expect_clahe: true
+
+  - name: ir_mode_dark
+    saturation: 10
+    brightness: 50
+    expect_clahe: false
+
+  - name: bright_ir
+    saturation: 10
+    brightness: 200
+    expect_clahe: false

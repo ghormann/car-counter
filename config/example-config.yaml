@@ -1,0 +1,32 @@
+# Camera identity and stream source
+camera_name: driveway
+rtsps_url: rtsps://192.168.1.10/stream
+
+# Scan regions (optional — omit to scan entire frame)
+scan_regions:
+  - {x: 100, y: 200, width: 400, height: 300}
+
+# Vehicle detection
+vehicle_classes: [car, truck, bus]
+detection_confidence: 0.4
+stationary_seconds: 3
+iou_threshold: 0.5
+
+# Night / low-light enhancement
+night_enhancement: true
+night_brightness_threshold: 80
+ir_saturation_threshold: 30
+
+# Frame processing
+target_fps: 1
+
+# Model
+model_path: yolov8n.pt
+
+# MQTT
+publish_interval_seconds: 5
+mqtt_timeout_seconds: 60
+
+# Image saving
+output_dir: ~/output
+image_save_cooldown_seconds: 30
