@@ -147,6 +147,7 @@ target_fps: 1 # Frames to process per second (read all, process at this rate)
 model_path: yolov8x.pt # Path to YOLOv8 weights file (baked into Docker image)
 
 # MQTT
+mqtt_prefix: car-counter # Topic prefix; topic becomes <prefix>/<camera_name>
 publish_interval_seconds: 5 # Heartbeat publish interval when count has not changed
 mqtt_timeout_seconds: 60 # Max seconds to wait for MQTT connection before exiting
 

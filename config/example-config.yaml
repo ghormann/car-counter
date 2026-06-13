@@ -7,8 +7,8 @@ scan_regions:
   - {x: 100, y: 200, width: 400, height: 300}
 
 # Ignore regions (optional — vehicles ≥95% inside are excluded from counting)
-# ignore_regions:
-#   - {x: 0, y: 0, width: 100, height: 50}
+ignore_regions:
+  - {x: 0, y: 0, width: 100, height: 50}
 
 # Vehicle detection
 vehicle_classes: [car, truck, bus]
@@ -28,7 +28,7 @@ model_path: yolov8x.pt
 # MQTT
 publish_interval_seconds: 5
 mqtt_timeout_seconds: 60
-mqtt_topic: car-counter/driveway
+mqtt_prefix: car-counter
 
 # Image saving
 output_dir: ~/output

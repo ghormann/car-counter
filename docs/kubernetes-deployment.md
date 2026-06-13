@@ -60,7 +60,7 @@ data:
     target_fps: 1
 
     model_path: yolov8x.pt
-    mqtt_topic: car-counter/driveway
+    mqtt_prefix: car-counter
 
     publish_interval_seconds: 5
     mqtt_timeout_seconds: 60
@@ -158,7 +158,7 @@ spec:
 ## Multiple Cameras
 
 Repeat the `ConfigMap` and `Deployment` above for each camera, changing:
-- `ConfigMap` name and `camera_name` / `rtsps_url` / `mqtt_topic` fields
+- `ConfigMap` name and `camera_name` / `rtsps_url` / `mqtt_prefix` fields
 - `Deployment` name and `camera` label
 - `ConfigMap` reference in the `volumes` section
 

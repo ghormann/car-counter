@@ -35,7 +35,7 @@ class AppConfig:
     model_path: str
     publish_interval_seconds: int
     mqtt_timeout_seconds: int
-    mqtt_topic: str
+    mqtt_topic: str  # derived from mqtt_prefix/camera_name
     output_dir: Path
     image_save_cooldown_seconds: int
 
@@ -52,7 +52,7 @@ _REQUIRED_APP_FIELDS = [
     'camera_name', 'rtsps_url', 'vehicle_classes', 'detection_confidence',
     'stationary_seconds', 'iou_threshold', 'night_enhancement',
     'target_fps', 'model_path', 'publish_interval_seconds', 'mqtt_timeout_seconds',
-    'mqtt_topic', 'output_dir', 'image_save_cooldown_seconds',
+    'mqtt_prefix', 'output_dir', 'image_save_cooldown_seconds',
 ]
 
 
@@ -104,7 +104,7 @@ def load_app_config(path: str) -> AppConfig:
         model_path=str(data['model_path']),
         publish_interval_seconds=int(data['publish_interval_seconds']),
         mqtt_timeout_seconds=int(data['mqtt_timeout_seconds']),
-        mqtt_topic=str(data['mqtt_topic']),
+        mqtt_topic=f"{data['mqtt_prefix']}/{data['camera_name']}",
         output_dir=output_dir,
         image_save_cooldown_seconds=int(data['image_save_cooldown_seconds']),
     )

@@ -73,7 +73,7 @@ night_enhancement: true # Enable CLAHE preprocessing for low-light frames
 target_fps: 1 # Frames to process per second
 
 model_path: yolov8x.pt # YOLOv8 weights (baked into Docker image)
-mqtt_topic: car-counter/driveway # MQTT topic to publish on
+mqtt_prefix: car-counter # MQTT topic prefix; topic becomes <prefix>/<camera_name>
 
 publish_interval_seconds: 5 # Heartbeat interval when count has not changed
 mqtt_timeout_seconds: 60 # Max wait for MQTT before exiting

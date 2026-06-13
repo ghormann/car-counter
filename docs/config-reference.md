@@ -95,7 +95,7 @@ Enhancement is selected automatically based on per-frame brightness and saturati
 
 | Field                      | Type   | Default | Description                                                                                                                                                        |
 | -------------------------- | ------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `mqtt_topic`               | string | —       | MQTT topic to publish to, e.g. `car-counter/driveway`.                                                                                                             |
+| `mqtt_prefix`              | string | —       | MQTT topic prefix. The camera name is appended automatically, so `car-counter` becomes `car-counter/driveway`.                                                     |
 | `publish_interval_seconds` | int    | `5`     | Heartbeat publish interval. A heartbeat is sent only if no count-change publish has occurred within this interval; the timer resets on every count-change publish. |
 | `mqtt_timeout_seconds`     | int    | `60`    | Maximum seconds to wait for MQTT connection on startup or during flush before exiting with an error.                                                               |
 
