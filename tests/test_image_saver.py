@@ -4,7 +4,7 @@ import cv2
 import pytest
 from pathlib import Path
 
-from src.config import ScanRegion, IgnoreRegion
+from src.config import BoxedRegion
 from src.detector import TrackedVehicle
 from src.image_saver import ImageSaver
 
@@ -88,7 +88,7 @@ class TestImageSaverAnnotation:
 
     def test_scan_region_drawn_green(self, tmp_output_dir):
         saver = ImageSaver(tmp_output_dir, "driveway", cooldown_seconds=0)
-        region = ScanRegion(x=50, y=50, width=100, height=100)
+        region = BoxedRegion(x=50, y=50, width=100, height=100)
         frame = make_frame()
         annotated = saver._annotate(frame.copy(), [], [region])
         # Green in BGR is (B=0, G=255, R=0). Rectangle drawn at (col=50, row=50).
@@ -97,7 +97,7 @@ class TestImageSaverAnnotation:
 
     def test_ignore_region_drawn_blue_with_label(self, tmp_output_dir):
         saver = ImageSaver(tmp_output_dir, "driveway", cooldown_seconds=0)
-        region = IgnoreRegion(x=50, y=50, width=100, height=100)
+        region = BoxedRegion(x=50, y=50, width=100, height=100)
         frame = make_frame()
         annotated = saver._annotate(frame.copy(), [], [], [region])
         # Blue in BGR is (B=255, G=0, R=0). Rectangle drawn at (col=50, row=50).
@@ -109,7 +109,7 @@ class TestImageSaverAnnotation:
         saver = ImageSaver(tmp_output_dir, "driveway", cooldown_seconds=0)
         frame = make_frame()
         original = frame.copy()
-        saver._annotate(frame, [], [ScanRegion(x=10, y=10, width=50, height=50)])
+        saver._annotate(frame, [], [BoxedRegion(x=10, y=10, width=50, height=50)])
         np.testing.assert_array_equal(frame, original)
 
     def test_save_jpeg_at_85_quality(self, tmp_output_dir):

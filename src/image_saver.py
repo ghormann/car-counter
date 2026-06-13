@@ -6,7 +6,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from src.config import ScanRegion, IgnoreRegion
+from src.config import BoxedRegion
 from src.detector import TrackedVehicle
 
 logger = logging.getLogger(__name__)
@@ -23,8 +23,8 @@ class ImageSaver:
         self,
         frame: np.ndarray,
         stationary_vehicles: list[TrackedVehicle],
-        scan_regions: list[ScanRegion],
-        ignore_regions: list[IgnoreRegion] = None,
+        scan_regions: list[BoxedRegion],
+        ignore_regions: list[BoxedRegion] = None,
         prefix: str = "",
     ) -> Path | None:
         if ignore_regions is None:
@@ -72,8 +72,8 @@ class ImageSaver:
     def _annotate(
         frame: np.ndarray,
         stationary_vehicles: list[TrackedVehicle],
-        scan_regions: list[ScanRegion],
-        ignore_regions: list[IgnoreRegion] = None,
+        scan_regions: list[BoxedRegion],
+        ignore_regions: list[BoxedRegion] = None,
     ) -> np.ndarray:
         if ignore_regions is None:
             ignore_regions = []

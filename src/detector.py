@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 
-from src.config import ScanRegion, IgnoreRegion
+from src.config import BoxedRegion
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +39,8 @@ class Detector:
         stationary_seconds: int,
         target_fps: int,
         night_enhancement: bool,
-        scan_regions: list[ScanRegion],
-        ignore_regions: list[IgnoreRegion],
+        scan_regions: list[BoxedRegion],
+        ignore_regions: list[BoxedRegion],
     ):
         self._model = YOLO(model_path)
         self._vehicle_classes = vehicle_classes

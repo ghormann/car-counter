@@ -3,7 +3,7 @@ import pytest
 import yaml
 from pathlib import Path
 
-from src.config import load_app_config, load_mqtt_config, AppConfig, MqttConfig, ScanRegion, IgnoreRegion
+from src.config import load_app_config, load_mqtt_config, AppConfig, MqttConfig, BoxedRegion
 
 
 VALID_APP_DATA = {
@@ -67,7 +67,7 @@ class TestLoadAppConfig:
         p = tmp_path / 'config.yaml'
         write_yaml(p, data)
         result = load_app_config(str(p))
-        assert result.scan_regions == [ScanRegion(x=100, y=200, width=400, height=300)]
+        assert result.scan_regions == [BoxedRegion(x=100, y=200, width=400, height=300)]
 
     def test_scan_regions_defaults_to_empty_list(self, tmp_path):
         p = make_app_config_file(tmp_path)
@@ -81,7 +81,7 @@ class TestLoadAppConfig:
         p = tmp_path / 'config.yaml'
         write_yaml(p, data)
         result = load_app_config(str(p))
-        assert result.ignore_regions == [IgnoreRegion(x=10, y=20, width=50, height=60)]
+        assert result.ignore_regions == [BoxedRegion(x=10, y=20, width=50, height=60)]
 
     def test_ignore_regions_defaults_to_empty_list(self, tmp_path):
         p = make_app_config_file(tmp_path)

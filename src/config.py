@@ -5,15 +5,7 @@ from pathlib import Path
 
 
 @dataclass
-class ScanRegion:
-    x: int
-    y: int
-    width: int
-    height: int
-
-
-@dataclass
-class IgnoreRegion:
+class BoxedRegion:
     x: int
     y: int
     width: int
@@ -24,8 +16,8 @@ class IgnoreRegion:
 class AppConfig:
     camera_name: str
     rtsps_url: str
-    scan_regions: list[ScanRegion]
-    ignore_regions: list[IgnoreRegion]
+    scan_regions: list[BoxedRegion]
+    ignore_regions: list[BoxedRegion]
     vehicle_classes: list[str]
     detection_confidence: float
     stationary_seconds: int
@@ -81,12 +73,12 @@ def load_app_config(path: str) -> AppConfig:
         raise ValueError(f"output_dir does not exist: {output_dir}")
 
     scan_regions = [
-        ScanRegion(x=r['x'], y=r['y'], width=r['width'], height=r['height'])
+        BoxedRegion(x=r['x'], y=r['y'], width=r['width'], height=r['height'])
         for r in data.get('scan_regions', [])
     ]
 
     ignore_regions = [
-        IgnoreRegion(x=r['x'], y=r['y'], width=r['width'], height=r['height'])
+        BoxedRegion(x=r['x'], y=r['y'], width=r['width'], height=r['height'])
         for r in data.get('ignore_regions', [])
     ]
 

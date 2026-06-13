@@ -6,7 +6,7 @@ import yaml
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from src.config import ScanRegion, IgnoreRegion
+from src.config import BoxedRegion
 from src.detector import Detector, Detection, TrackedVehicle
 
 
@@ -240,27 +240,27 @@ class TestScanRegions:
         assert d._is_in_scan_regions((500, 500, 600, 600)) is True
 
     def test_box_overlapping_region_is_included(self):
-        region = ScanRegion(x=100, y=100, width=200, height=200)
+        region = BoxedRegion(x=100, y=100, width=200, height=200)
         d = make_detector(scan_regions=[region])
         # Box fully inside region
         assert d._is_in_scan_regions((110, 110, 150, 150)) is True
 
     def test_box_partially_overlapping_region_is_included(self):
-        region = ScanRegion(x=100, y=100, width=200, height=200)
+        region = BoxedRegion(x=100, y=100, width=200, height=200)
         d = make_detector(scan_regions=[region])
         # Box partially overlaps region (straddles left edge)
         assert d._is_in_scan_regions((50, 110, 150, 150)) is True
 
     def test_box_outside_all_regions_excluded(self):
-        region = ScanRegion(x=100, y=100, width=200, height=200)
+        region = BoxedRegion(x=100, y=100, width=200, height=200)
         d = make_detector(scan_regions=[region])
         # Completely outside
         assert d._is_in_scan_regions((400, 400, 500, 500)) is False
 
     def test_box_in_any_of_multiple_regions_is_included(self):
         regions = [
-            ScanRegion(x=0, y=0, width=100, height=100),
-            ScanRegion(x=500, y=500, width=100, height=100),
+            BoxedRegion(x=0, y=0, width=100, height=100),
+            BoxedRegion(x=500, y=500, width=100, height=100),
         ]
         d = make_detector(scan_regions=regions)
         assert d._is_in_scan_regions((510, 510, 560, 560)) is True
@@ -272,7 +272,7 @@ class TestIgnoreRegions:
         assert d._is_in_ignore_regions((0, 0, 100, 100)) is False
 
     def test_vehicle_fully_inside_ignore_region_is_suppressed(self):
-        region = IgnoreRegion(x=0, y=0, width=200, height=200)
+        region = BoxedRegion(x=0, y=0, width=200, height=200)
         d = make_detector(ignore_regions=[region])
         # box entirely inside: 100% overlap
         assert d._is_in_ignore_regions((10, 10, 190, 190)) is True
@@ -281,7 +281,7 @@ class TestIgnoreRegions:
         # region: x=0..200, y=0..200 (area 40000)
         # box: x=0..200, y=0..200 (area 40000)
         # intersection: 40000 => coverage 100% >= 0.95 → suppressed
-        region = IgnoreRegion(x=0, y=0, width=200, height=200)
+        region = BoxedRegion(x=0, y=0, width=200, height=200)
         d = make_detector(ignore_regions=[region])
         assert d._is_in_ignore_regions((0, 0, 200, 200)) is True
 
@@ -290,20 +290,20 @@ class TestIgnoreRegions:
         # box: x=0..100, y=0..106 (area 10600)
         # intersection: x=0..100, y=0..100 => 10000
         # coverage: 10000 / 10600 = 0.943... < 0.95 → not suppressed
-        region = IgnoreRegion(x=0, y=0, width=100, height=100)
+        region = BoxedRegion(x=0, y=0, width=100, height=100)
         d = make_detector(ignore_regions=[region])
         assert d._is_in_ignore_regions((0, 0, 100, 106)) is False
 
     def test_vehicle_95_percent_inside_one_of_multiple_regions_is_suppressed(self):
         regions = [
-            IgnoreRegion(x=500, y=500, width=100, height=100),
-            IgnoreRegion(x=0, y=0, width=200, height=200),
+            BoxedRegion(x=500, y=500, width=100, height=100),
+            BoxedRegion(x=0, y=0, width=200, height=200),
         ]
         d = make_detector(ignore_regions=regions)
         assert d._is_in_ignore_regions((10, 10, 190, 190)) is True
 
     def test_vehicle_outside_all_ignore_regions_is_not_suppressed(self):
-        region = IgnoreRegion(x=500, y=500, width=100, height=100)
+        region = BoxedRegion(x=500, y=500, width=100, height=100)
         d = make_detector(ignore_regions=[region])
         assert d._is_in_ignore_regions((0, 0, 100, 100)) is False
 
@@ -316,7 +316,7 @@ class TestRealImageDetection:
         assert frame is not None, f"Could not load test image: {image_path}"
 
         scan_regions = [
-            ScanRegion(x=r['x'], y=r['y'], width=r['width'], height=r['height'])
+            BoxedRegion(x=r['x'], y=r['y'], width=r['width'], height=r['height'])
             for r in case.get('scan_regions', [])
         ]
         detector = Detector(
