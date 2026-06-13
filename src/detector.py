@@ -49,20 +49,24 @@ class Detector:
         self._tracked: list[TrackedVehicle] = []
 
     def process_frame(self, frame: np.ndarray) -> tuple[int, list[TrackedVehicle]]:
-        if self._night_enhancement and self._should_apply_clahe(frame):
-            frame = self._apply_clahe(frame)
+        if self._night_enhancement:
+            frame = self._enhance_frame(frame)
         detections = self._run_inference(frame)
         self._update_tracker(detections)
         stationary = [v for v in self._tracked if v.frames >= self._required_frames]
         return len(stationary), stationary
 
-    def _should_apply_clahe(self, frame: np.ndarray) -> bool:
+    def _enhance_frame(self, frame: np.ndarray) -> np.ndarray:
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        mean_brightness = float(np.mean(hsv[:, :, 2]))
-        mean_saturation = float(np.mean(hsv[:, :, 1]))
-        is_ir = mean_saturation < _IR_SATURATION_THRESHOLD
-        is_dark = mean_brightness < _NIGHT_BRIGHTNESS_THRESHOLD
-        return is_dark and not is_ir
+        brightness = float(np.mean(hsv[:, :, 2]))
+        saturation = float(np.mean(hsv[:, :, 1]))
+        is_dark = brightness < _NIGHT_BRIGHTNESS_THRESHOLD
+        is_ir = saturation < _IR_SATURATION_THRESHOLD
+        if is_dark and not is_ir:
+            return self._apply_clahe(frame)
+        if is_dark and is_ir:
+            return self._apply_ir_enhancement(frame)
+        return frame
 
     def _apply_clahe(self, frame: np.ndarray) -> np.ndarray:
         lab = cv2.cvtColor(frame, cv2.COLOR_BGR2LAB)

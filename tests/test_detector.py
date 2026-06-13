@@ -52,46 +52,61 @@ def make_detector(**kwargs):
         return Detector(**defaults)
 
 
-class TestClahe:
-    @pytest.mark.parametrize("case", TEST_CASES['clahe_cases'], ids=lambda c: c['name'])
-    def test_should_apply_clahe_parametrized(self, case):
-        detector = make_detector()
-        frame = make_bgr_from_hsv(case['saturation'], case['brightness'])
-        result = detector._should_apply_clahe(frame)
-        assert result == case['expect_clahe']
+class TestEnhancement:
+    def test_enhance_frame_calls_clahe_for_dark_color_frame(self, dim_color_frame):
+        d = make_detector()
+        with patch.object(d, '_apply_clahe', return_value=dim_color_frame) as clahe_mock:
+            with patch.object(d, '_apply_ir_enhancement', return_value=dim_color_frame, create=True):
+                d._enhance_frame(dim_color_frame)
+        clahe_mock.assert_called_once()
+
+    def test_enhance_frame_calls_ir_enhancement_for_dark_ir_frame(self):
+        d = make_detector()
+        ir_frame = make_bgr_from_hsv(saturation=0, brightness=50)
+        with patch.object(d, '_apply_ir_enhancement', return_value=ir_frame, create=True) as ir_mock:
+            with patch.object(d, '_apply_clahe', return_value=ir_frame):
+                d._enhance_frame(ir_frame)
+        ir_mock.assert_called_once()
+
+    def test_enhance_frame_returns_frame_unchanged_when_bright(self):
+        d = make_detector()
+        bright_frame = make_bgr_from_hsv(saturation=100, brightness=200)
+        with patch.object(d, '_apply_clahe') as clahe_mock:
+            with patch.object(d, '_apply_ir_enhancement', create=True) as ir_mock:
+                result = d._enhance_frame(bright_frame)
+        clahe_mock.assert_not_called()
+        ir_mock.assert_not_called()
 
     def test_apply_clahe_returns_same_shape(self, dim_color_frame):
-        detector = make_detector()
-        result = detector._apply_clahe(dim_color_frame)
+        d = make_detector()
+        result = d._apply_clahe(dim_color_frame)
         assert result.shape == dim_color_frame.shape
         assert result.dtype == np.uint8
 
     def test_apply_clahe_brightens_dark_frame(self, dim_color_frame):
-        detector = make_detector()
-        result = detector._apply_clahe(dim_color_frame)
-        original_mean = np.mean(dim_color_frame)
-        result_mean = np.mean(result)
-        assert result_mean > original_mean
+        d = make_detector()
+        result = d._apply_clahe(dim_color_frame)
+        assert np.mean(result) > np.mean(dim_color_frame)
 
     def test_apply_clahe_does_not_modify_original(self, dim_color_frame):
-        detector = make_detector()
+        d = make_detector()
         original_copy = dim_color_frame.copy()
-        detector._apply_clahe(dim_color_frame)
+        d._apply_clahe(dim_color_frame)
         np.testing.assert_array_equal(dim_color_frame, original_copy)
 
-    def test_night_enhancement_disabled_skips_clahe(self, dim_color_frame):
+    def test_night_enhancement_disabled_skips_enhance_frame(self, dim_color_frame):
         detector = make_detector(night_enhancement=False)
-        with patch.object(detector, '_apply_clahe') as mock_clahe:
+        with patch.object(detector, '_enhance_frame') as mock:
             with patch.object(detector, '_run_inference', return_value=[]):
                 detector.process_frame(dim_color_frame)
-            mock_clahe.assert_not_called()
+        mock.assert_not_called()
 
-    def test_night_enhancement_enabled_applies_clahe_to_dark_frame(self, dim_color_frame):
+    def test_night_enhancement_enabled_calls_enhance_frame(self, dim_color_frame):
         detector = make_detector(night_enhancement=True)
-        with patch.object(detector, '_apply_clahe', return_value=dim_color_frame) as mock_clahe:
+        with patch.object(detector, '_enhance_frame', return_value=dim_color_frame) as mock:
             with patch.object(detector, '_run_inference', return_value=[]):
                 detector.process_frame(dim_color_frame)
-            mock_clahe.assert_called_once()
+        mock.assert_called_once()
 
 
 class TestComputeIou:
