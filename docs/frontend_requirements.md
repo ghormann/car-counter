@@ -139,6 +139,8 @@ The existing `.github/workflows/docker-build-push.yml` workflow should be update
 
 ## Kubernetes Deployment
 
+We should modify the existing kuberneties-deployment.md file to provide steps for deploying this pod as well: 
+
 - **Deployment**: single replica, mounts the car-counter PVC **read-only** at `/data`
 - **Service**: `LoadBalancer` type using MetalLB (`metallb.universe.tf/address-pool: first-ip-pool`), port 80 → container port 8080
 - Resource limits:
