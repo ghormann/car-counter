@@ -117,6 +117,7 @@ footer button:disabled {
 }
 
 /* ── Viewer ── */
+/* display controlled by JS via showView(); initially hidden by inline style in HTML */
 #viewer {
   display: flex;
   flex-direction: column;

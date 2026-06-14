@@ -19,6 +19,7 @@ const viewerBtnNext = document.getElementById('viewer-next');
 let currentPage = 1;
 let images = [];        // current page's image list
 let viewerIndex = 0;   // index into images[] currently shown in viewer
+let viewerOpen = false; // whether viewer is currently visible
 
 async function fetchJSON(url) {
   const r = await fetch(url);
@@ -100,7 +101,6 @@ async function loadImages() {
   images.forEach((img, idx) => {
     const card = document.createElement('div');
     card.className = 'thumb-card';
-    card.style.cursor = 'pointer';
 
     const image = document.createElement('img');
     image.src = img.url;
@@ -130,6 +130,7 @@ async function loadImages() {
 }
 
 function showView(view) {
+  viewerOpen = view === 'viewer';
   app.style.display = view === 'grid' ? '' : 'none';
   viewer.style.display = view === 'viewer' ? 'flex' : 'none';
 }
@@ -165,7 +166,7 @@ viewerBtnNext.addEventListener('click', () => {
 });
 
 document.addEventListener('keydown', (e) => {
-  if (viewer.style.display === 'none') return;
+  if (!viewerOpen) return;
   if (e.key === 'ArrowLeft'  && viewerIndex > 0)                  { viewerIndex--; renderViewer(); }
   if (e.key === 'ArrowRight' && viewerIndex < images.length - 1)  { viewerIndex++; renderViewer(); }
   if (e.key === 'Escape')                                          { showView('grid'); }
