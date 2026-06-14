@@ -28,10 +28,14 @@ function populate(sel, values, selectedValue) {
 }
 
 async function loadCameras() {
-  const cameras = await fetchJSON('/api/cameras');
-  if (!cameras.length) return;
-  populate(selCamera, cameras, cameras[0]);
-  await loadYears();
+  try {
+    const cameras = await fetchJSON('/api/cameras');
+    if (!cameras.length) return;
+    populate(selCamera, cameras, cameras[0]);
+    await loadYears();
+  } catch (e) {
+    grid.innerHTML = `<p style="color:#e74c3c;padding:16px">Error loading cameras: ${e.message}</p>`;
+  }
 }
 
 async function loadYears() {

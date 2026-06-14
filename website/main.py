@@ -11,10 +11,18 @@ PAGE_SIZE = 50
 app = FastAPI()
 
 
+def _safe_resolve(path: Path) -> Path:
+    resolved = path.resolve()
+    if not str(resolved).startswith(str(IMAGE_ROOT.resolve())):
+        raise HTTPException(status_code=400, detail="Invalid path")
+    return resolved
+
+
 def _require_dir(path: Path) -> Path:
-    if not path.exists() or not path.is_dir():
-        raise HTTPException(status_code=404, detail=f"{path} not found")
-    return path
+    safe = _safe_resolve(path)
+    if not safe.exists() or not safe.is_dir():
+        raise HTTPException(status_code=404, detail=f"{path.name} not found")
+    return safe
 
 
 @app.get("/api/cameras")
@@ -90,7 +98,7 @@ def list_images(
 
 @app.get("/images/{camera}/{year}/{month}/{day}/{filename}")
 def serve_image(camera: str, year: str, month: str, day: str, filename: str):
-    path = IMAGE_ROOT / camera / year / month / day / filename
+    path = _safe_resolve(IMAGE_ROOT / camera / year / month / day / filename)
     if not path.exists() or not path.is_file():
         raise HTTPException(status_code=404, detail="Image not found")
     return FileResponse(path, media_type="image/jpeg")
