@@ -65,7 +65,9 @@ Single-page layout:
 - Under each thumbnail:
   - Human-readable timestamp: `YYYY-MM-DD HH:MM:SS`
   - "startup" badge if the filename begins with `startup_`
-- Clicking a thumbnail opens the **full-size image in a new browser tab**
+- Clicking a thumbnail opens an **in-page image viewer** (same tab) that shows the full-size image with a thin top bar containing back (←), prev (‹), and next (›) icons plus the image timestamp and startup badge; the image fills the remaining viewport height with `object-fit: contain` on a black background
+- The viewer navigates within the current page's image list (up to 50 images); keyboard left/right arrows also navigate
+- The back arrow returns to the grid with all filter and pagination state preserved
 - Pagination: **Prev / Next** buttons with a **"Page X of Y"** indicator
 
 ---
