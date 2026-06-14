@@ -86,3 +86,17 @@ def list_images(
         for f in page_files
     ]
     return {"page": page, "total_pages": total_pages, "total": total, "images": images}
+
+
+@app.get("/images/{camera}/{year}/{month}/{day}/{filename}")
+def serve_image(camera: str, year: str, month: str, day: str, filename: str):
+    path = IMAGE_ROOT / camera / year / month / day / filename
+    if not path.exists() or not path.is_file():
+        raise HTTPException(status_code=404, detail="Image not found")
+    return FileResponse(path, media_type="image/jpeg")
+
+
+# Static files — mounted last so API routes take priority
+_static_dir = Path(__file__).parent / "static"
+if _static_dir.exists():
+    app.mount("/", StaticFiles(directory=str(_static_dir), html=True), name="static")

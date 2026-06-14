@@ -81,3 +81,14 @@ def test_images_startup_badge(client):
     assert startup["is_startup"] is True
     normal = next(img for img in data["images"] if not img["filename"].startswith("startup_"))
     assert normal["is_startup"] is False
+
+
+def test_serve_image(client, image_root):
+    r = client.get("/images/cam1/2024/01/15/20240115_120000.jpg")
+    assert r.status_code == 200
+    assert r.headers["content-type"].startswith("image/")
+
+
+def test_serve_image_not_found(client):
+    r = client.get("/images/cam1/2024/01/15/nope.jpg")
+    assert r.status_code == 404
