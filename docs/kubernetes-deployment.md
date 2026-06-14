@@ -179,3 +179,105 @@ annotations:
 ```
 
 All metrics include a `camera` label, so a single Prometheus job can scrape all instances.
+
+---
+
+## Website (Image Browser)
+
+A single-replica web UI that serves annotated images from the shared PVC.
+
+### Manifests
+
+**deployment.yaml**
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: car-counter-website
+  namespace: car-counter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: car-counter-website
+  template:
+    metadata:
+      labels:
+        app: car-counter-website
+    spec:
+      containers:
+        - name: website
+          image: docker.thehormanns.net/car-counter-website:latest
+          env:
+            - name: IMAGE_ROOT
+              value: /data
+          ports:
+            - containerPort: 8080
+              name: http
+          volumeMounts:
+            - name: images
+              mountPath: /data
+              readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+      volumes:
+        - name: images
+          persistentVolumeClaim:
+            claimName: car-counter-output
+```
+
+**service.yaml**
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: car-counter-website
+  namespace: car-counter
+  annotations:
+    metallb.universe.tf/address-pool: first-ip-pool
+spec:
+  type: LoadBalancer
+  selector:
+    app: car-counter-website
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+```
+
+### Deploy
+
+```bash
+kubectl apply -f - <<'EOF'
+# paste deployment.yaml contents here
+EOF
+
+kubectl apply -f - <<'EOF'
+# paste service.yaml contents here
+EOF
+```
+
+Or save each block above to a temp file and `kubectl apply -f <file>`.
+
+The pod mounts the same `car-counter-output` PVC **read-only** at `/data`.
+
+### Get the external IP
+
+```bash
+kubectl get service car-counter-website -n car-counter
+```
+
+The `EXTERNAL-IP` column shows the MetalLB address. Browse to `http://<EXTERNAL-IP>/`.
+
+### Updating the image
+
+```bash
+kubectl rollout restart deployment/car-counter-website -n car-counter
+```

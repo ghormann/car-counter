@@ -1,0 +1,9 @@
+services:
+  website:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      IMAGE_ROOT: /data
+    volumes:
+      - ../output:/data:ro
