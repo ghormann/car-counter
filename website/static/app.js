@@ -7,6 +7,7 @@ const grid      = document.getElementById('grid');
 const btnPrev   = document.getElementById('btn-prev');
 const btnNext   = document.getElementById('btn-next');
 const pageInd   = document.getElementById('page-indicator');
+const app           = document.getElementById('app');
 const viewer        = document.getElementById('viewer');
 const viewerImg     = document.getElementById('viewer-img');
 const viewerTs      = document.getElementById('viewer-timestamp');
@@ -129,7 +130,7 @@ async function loadImages() {
 }
 
 function showView(view) {
-  document.getElementById('app').style.display = view === 'grid' ? '' : 'none';
+  app.style.display = view === 'grid' ? '' : 'none';
   viewer.style.display = view === 'viewer' ? 'flex' : 'none';
 }
 
@@ -140,6 +141,7 @@ function openViewer(idx) {
 }
 
 function renderViewer() {
+  if (!images.length) return;
   const img = images[viewerIndex];
   viewerImg.src = img.url;
   viewerImg.alt = img.timestamp;
