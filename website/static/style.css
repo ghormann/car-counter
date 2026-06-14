@@ -115,3 +115,62 @@ footer button:disabled {
   font-size: 0.85rem;
   color: #aaa;
 }
+
+/* ── Viewer ── */
+#viewer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #000;
+}
+
+#viewer-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  height: 40px;
+  background: #1e1e1e;
+  border-bottom: 1px solid #333;
+  flex-shrink: 0;
+}
+
+#viewer-bar button {
+  background: none;
+  border: none;
+  color: #eee;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+#viewer-bar button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+#viewer-bar button:not(:disabled):hover {
+  background: #2a2a2a;
+}
+
+#viewer-timestamp {
+  font-size: 0.8rem;
+  color: #aaa;
+  margin-left: 8px;
+}
+
+#viewer-img-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#viewer-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
