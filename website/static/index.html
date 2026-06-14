@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Car Counter Images</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div id="filters">
+        <label>Camera
+          <select id="sel-camera"></select>
+        </label>
+        <label>Year
+          <select id="sel-year"></select>
+        </label>
+        <label>Month
+          <select id="sel-month"></select>
+        </label>
+        <label>Day
+          <select id="sel-day"></select>
+        </label>
+        <label>Sort
+          <select id="sel-sort">
+            <option value="desc" selected>Newest first</option>
+            <option value="asc">Oldest first</option>
+          </select>
+        </label>
+      </div>
+    </header>
+
+    <main>
+      <div id="grid"></div>
+    </main>
+
+    <footer>
+      <button id="btn-prev">Prev</button>
+      <span id="page-indicator">Page 1 of 1</span>
+      <button id="btn-next">Next</button>
+    </footer>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
