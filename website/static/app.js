@@ -7,8 +7,17 @@ const grid      = document.getElementById('grid');
 const btnPrev   = document.getElementById('btn-prev');
 const btnNext   = document.getElementById('btn-next');
 const pageInd   = document.getElementById('page-indicator');
+const viewer        = document.getElementById('viewer');
+const viewerImg     = document.getElementById('viewer-img');
+const viewerTs      = document.getElementById('viewer-timestamp');
+const viewerBadge   = document.getElementById('viewer-badge');
+const viewerBack    = document.getElementById('viewer-back');
+const viewerBtnPrev = document.getElementById('viewer-prev');
+const viewerBtnNext = document.getElementById('viewer-next');
 
 let currentPage = 1;
+let images = [];        // current page's image list
+let viewerIndex = 0;   // index into images[] currently shown in viewer
 
 async function fetchJSON(url) {
   const r = await fetch(url);
@@ -84,12 +93,13 @@ async function loadImages() {
   const url = `/api/images?camera=${encodeURIComponent(cam)}&year=${encodeURIComponent(year)}&month=${encodeURIComponent(month)}&day=${encodeURIComponent(day)}&sort=${sort}&page=${currentPage}`;
   const data = await fetchJSON(url);
 
+  images = data.images;
+
   grid.innerHTML = '';
-  data.images.forEach(img => {
-    const a = document.createElement('a');
-    a.href = img.url;
-    a.target = '_blank';
-    a.className = 'thumb-card';
+  images.forEach((img, idx) => {
+    const card = document.createElement('div');
+    card.className = 'thumb-card';
+    card.style.cursor = 'pointer';
 
     const image = document.createElement('img');
     image.src = img.url;
@@ -107,9 +117,10 @@ async function loadImages() {
       info.appendChild(badge);
     }
 
-    a.appendChild(image);
-    a.appendChild(info);
-    grid.appendChild(a);
+    card.appendChild(image);
+    card.appendChild(info);
+    card.addEventListener('click', () => openViewer(idx));
+    grid.appendChild(card);
   });
 
   pageInd.textContent = `Page ${data.page} of ${data.total_pages}`;
@@ -117,8 +128,46 @@ async function loadImages() {
   btnNext.disabled = data.page >= data.total_pages;
 }
 
+function showView(view) {
+  document.getElementById('app').style.display = view === 'grid' ? '' : 'none';
+  viewer.style.display = view === 'viewer' ? 'flex' : 'none';
+}
+
+function openViewer(idx) {
+  viewerIndex = idx;
+  renderViewer();
+  showView('viewer');
+}
+
+function renderViewer() {
+  const img = images[viewerIndex];
+  viewerImg.src = img.url;
+  viewerImg.alt = img.timestamp;
+  viewerTs.textContent = img.timestamp;
+  viewerBadge.style.display = img.is_startup ? '' : 'none';
+  viewerBtnPrev.disabled = viewerIndex <= 0;
+  viewerBtnNext.disabled = viewerIndex >= images.length - 1;
+}
+
 btnPrev.addEventListener('click', () => { currentPage--; loadImages(); });
 btnNext.addEventListener('click', () => { currentPage++; loadImages(); });
+
+viewerBack.addEventListener('click', () => showView('grid'));
+
+viewerBtnPrev.addEventListener('click', () => {
+  if (viewerIndex > 0) { viewerIndex--; renderViewer(); }
+});
+
+viewerBtnNext.addEventListener('click', () => {
+  if (viewerIndex < images.length - 1) { viewerIndex++; renderViewer(); }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (viewer.style.display === 'none') return;
+  if (e.key === 'ArrowLeft'  && viewerIndex > 0)                  { viewerIndex--; renderViewer(); }
+  if (e.key === 'ArrowRight' && viewerIndex < images.length - 1)  { viewerIndex++; renderViewer(); }
+  if (e.key === 'Escape')                                          { showView('grid'); }
+});
 
 // Bootstrap on page load
 loadCameras();
