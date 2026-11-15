@@ -7,7 +7,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from src.config import BoxedRegion
+from src.config import Region
 from src.detector import TrackedVehicle
 
 logger = logging.getLogger(__name__)
@@ -41,8 +41,8 @@ class ImageSaver:
         self,
         frame: np.ndarray,
         stationary_vehicles: list[TrackedVehicle],
-        scan_regions: list[BoxedRegion],
-        ignore_regions: list[BoxedRegion] = None,
+        scan_regions: list[Region],
+        ignore_regions: list[Region] = None,
         prefix: str = "",
     ) -> Path | None:
         """Annotate and save a frame to disk if the cooldown has elapsed.
@@ -107,13 +107,14 @@ class ImageSaver:
     def _annotate(
         frame: np.ndarray,
         stationary_vehicles: list[TrackedVehicle],
-        scan_regions: list[BoxedRegion],
-        ignore_regions: list[BoxedRegion] = None,
+        scan_regions: list[Region],
+        ignore_regions: list[Region] = None,
     ) -> np.ndarray:
         """Draw bounding boxes and a summary overlay onto *frame*.
 
         Stationary vehicles are outlined in red with a confidence label.
-        Scan regions are outlined in green. Ignore regions are outlined in blue
+        Scan regions (rectangles or polygons) are outlined in green. Ignore
+        regions are outlined in blue
         with an "exclude" label. A centered vehicle count is rendered at the
         bottom of the frame.
 
@@ -141,14 +142,14 @@ class ImageSaver:
             cv2.putText(frame, label, (x1, ly - baseline), font, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
 
         for region in scan_regions:
-            x1, y1 = region.x, region.y
-            x2, y2 = region.x + region.width, region.y + region.height
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)  # Green
+            pts = np.array(region.points, dtype=np.int32)
+            cv2.polylines(frame, [pts], isClosed=True, color=(0, 255, 0), thickness=2)  # Green
 
         for region in ignore_regions:
-            x1, y1 = region.x, region.y
-            x2, y2 = region.x + region.width, region.y + region.height
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)  # Blue
+            pts = np.array(region.points, dtype=np.int32)
+            cv2.polylines(frame, [pts], isClosed=True, color=(255, 0, 0), thickness=2)  # Blue
+            # Anchor the label at the top-most (then left-most) vertex.
+            x1, y1 = min(region.points, key=lambda p: (p[1], p[0]))
             label = "exclude"
             (lw, lh), baseline = cv2.getTextSize(label, font, 0.5, 1)
             ly = y1 + lh + baseline + 4

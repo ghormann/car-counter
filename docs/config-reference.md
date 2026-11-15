@@ -29,28 +29,32 @@ All fields are **required** unless marked optional.
 ```yaml
 scan_regions:
   - { x: 100, y: 200, width: 400, height: 300 }
-  - { x: 500, y: 100, width: 200, height: 150 }
+  - points: [[500, 100], [700, 120], [680, 250], [520, 240]]
 ```
 
-Pixel coordinates relative to the full frame resolution. If omitted, the entire frame is scanned. Vehicles overlapping multiple regions are counted once.
+Pixel coordinates relative to the full frame resolution. If omitted, the entire frame is scanned. A vehicle is considered when its bounding box overlaps any scan region. Vehicles overlapping multiple regions are counted once.
 
-| Sub-field | Type | Description                       |
-| --------- | ---- | --------------------------------- |
-| `x`       | int  | Left edge of the region in pixels |
-| `y`       | int  | Top edge of the region in pixels  |
-| `width`   | int  | Width of the region in pixels     |
-| `height`  | int  | Height of the region in pixels    |
+Each region is either a rectangle or a polygon (see [Region shapes](#region-shapes)).
 
 ### Ignore Regions (optional)
 
 ```yaml
 ignore_regions:
   - { x: 0, y: 0, width: 100, height: 50 }
+  - points: [[0, 525], [1300, 535], [3840, 1060], [3840, 2160], [0, 2160]]
 ```
 
-Pixel coordinates relative to the full frame resolution. If a detected vehicle's bounding box is 95% or more inside any ignore region, it is excluded from counting. Useful for masking areas with frequent false positives (e.g., a neighbor's driveway at the edge of frame).
+Pixel coordinates relative to the full frame resolution. If 95% or more of a detected vehicle's bounding box lies inside the ignore regions **combined**, it is excluded from counting. Coverage is measured against the union of all ignore regions, so a vehicle straddling two adjacent regions is excluded just like one inside a single region, and overlapping regions are not double-counted. Useful for masking areas with frequent false positives (e.g., a neighbor's driveway at the edge of frame).
 
 Ignore regions are rendered as **blue** outlines labeled `exclude` on annotated images.
+
+Each region is either a rectangle or a polygon (see [Region shapes](#region-shapes)).
+
+### Region shapes
+
+Both `scan_regions` and `ignore_regions` accept either form, and they can be mixed in one list.
+
+**Rectangle**
 
 | Sub-field | Type | Description                        |
 | --------- | ---- | ---------------------------------- |
@@ -58,6 +62,14 @@ Ignore regions are rendered as **blue** outlines labeled `exclude` on annotated 
 | `y`       | int  | Top edge of the region in pixels   |
 | `width`   | int  | Width of the region in pixels      |
 | `height`  | int  | Height of the region in pixels     |
+
+**Polygon**
+
+| Sub-field | Type              | Description                                                                 |
+| --------- | ----------------- | --------------------------------------------------------------------------- |
+| `points`  | list of `[x, y]`  | At least 3 vertices in order (either direction). The shape is closed automatically and must not cross itself. |
+
+Polygons are useful for following an angled road or curb that would otherwise need a staircase of rectangles.
 
 ### Vehicle Detection
 

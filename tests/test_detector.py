@@ -7,7 +7,7 @@ import yaml
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from src.config import BoxedRegion
+from src.config import BoxedRegion, PolygonRegion
 from src.detector import Detector, Detection, TrackedVehicle
 
 
@@ -307,6 +307,62 @@ class TestIgnoreRegions:
         region = BoxedRegion(x=500, y=500, width=100, height=100)
         d = make_detector(ignore_regions=[region])
         assert d._is_in_ignore_regions((0, 0, 100, 100)) is False
+
+    def test_vehicle_split_across_adjacent_regions_is_suppressed(self):
+        # Neither region alone covers 95 % (70 % / 30 %), but together they cover 100 %.
+        regions = [
+            BoxedRegion(x=0, y=0, width=70, height=200),
+            BoxedRegion(x=70, y=0, width=100, height=200),
+        ]
+        d = make_detector(ignore_regions=regions)
+        assert d._is_in_ignore_regions((0, 50, 100, 150)) is True
+
+    def test_overlapping_regions_are_not_double_counted(self):
+        # Both regions cover the same left 60 % of the box; union is only 60 %.
+        regions = [
+            BoxedRegion(x=0, y=0, width=60, height=100),
+            BoxedRegion(x=0, y=0, width=60, height=100),
+        ]
+        d = make_detector(ignore_regions=regions)
+        assert d._is_in_ignore_regions((0, 0, 100, 100)) is False
+
+    def test_vehicle_inside_polygon_is_suppressed(self):
+        # Triangle; box sits well inside it.
+        region = PolygonRegion(points=[(0, 0), (1000, 0), (0, 1000)])
+        d = make_detector(ignore_regions=[region])
+        assert d._is_in_ignore_regions((10, 10, 200, 200)) is True
+
+    def test_vehicle_half_inside_polygon_is_not_suppressed(self):
+        # Diagonal edge through the box: exactly half is covered.
+        region = PolygonRegion(points=[(0, 0), (100, 0), (0, 100)])
+        d = make_detector(ignore_regions=[region])
+        assert d._is_in_ignore_regions((0, 0, 100, 100)) is False
+
+    def test_polygon_and_rectangle_combine(self):
+        regions = [
+            PolygonRegion(points=[(0, 0), (100, 0), (0, 100)]),
+            BoxedRegion(x=0, y=0, width=100, height=100),
+        ]
+        d = make_detector(ignore_regions=regions)
+        assert d._is_in_ignore_regions((0, 0, 100, 100)) is True
+
+
+class TestPolygonScanRegions:
+    def test_box_overlapping_polygon_is_included(self):
+        region = PolygonRegion(points=[(0, 0), (1000, 0), (0, 1000)])
+        d = make_detector(scan_regions=[region])
+        assert d._is_in_scan_regions((400, 400, 600, 600)) is True
+
+    def test_box_inside_polygon_bounding_box_but_outside_polygon_is_excluded(self):
+        # Box is within the triangle's bounding rectangle but past its diagonal.
+        region = PolygonRegion(points=[(0, 0), (1000, 0), (0, 1000)])
+        d = make_detector(scan_regions=[region])
+        assert d._is_in_scan_regions((700, 700, 900, 900)) is False
+
+    def test_box_touching_region_edge_only_is_excluded(self):
+        region = BoxedRegion(x=100, y=100, width=100, height=100)
+        d = make_detector(scan_regions=[region])
+        assert d._is_in_scan_regions((200, 100, 300, 200)) is False
 
 
 class TestRealImageDetection:

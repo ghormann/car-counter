@@ -16,7 +16,8 @@ Monitor RTSPS camera feeds and count stationary motor vehicles (cars, trucks, bu
 - Only count **stationary** vehicles: a vehicle must be continuously detected with IoU ≥ 0.5 overlap across frames for at least `stationary_seconds` (default: 3s, configurable)
 - Count is the **total** across all configured scan regions; vehicles overlapping multiple regions count once
 - If no scan regions are configured, scan the entire frame
-- Optionally define `ignore_regions`: a vehicle whose bounding box is ≥95% inside any ignore region is excluded from counting
+- Optionally define `ignore_regions`: a vehicle whose bounding box is ≥95% inside the union of all ignore regions is excluded from counting
+- Scan and ignore regions may each be an axis-aligned rectangle (`x`, `y`, `width`, `height`) or a polygon (`points: [[x, y], ...]`)
 
 ### Night / Low-Light Detection
 
@@ -127,7 +128,8 @@ scan_regions:
   - { x: 100, y: 200, width: 400, height: 300 }
   - { x: 500, y: 100, width: 200, height: 150 }
 
-# Ignore regions (optional — vehicles ≥95% inside are excluded)
+# Ignore regions (optional — vehicles ≥95% inside the combined regions are excluded)
+# Regions may be rectangles or polygons: - points: [[x1, y1], [x2, y2], [x3, y3], ...]
 # ignore_regions:
 #   - { x: 0, y: 0, width: 100, height: 50 }
 

@@ -5,11 +5,17 @@ from dataclasses import dataclass
 
 import cv2
 import numpy as np
+from shapely.geometry import Polygon, box as shapely_box
+from shapely.ops import unary_union
 from ultralytics import YOLO
 
-from src.config import BoxedRegion
+from src.config import Region
 
 logger = logging.getLogger(__name__)
+
+# Fraction of a detection's bounding-box area that must be covered by the
+# union of all ignore regions for the detection to be suppressed.
+_IGNORE_COVERAGE_THRESHOLD = 0.95
 
 # Mean V-channel value (0–255) in HSV below which a frame is treated as dark.
 # 80 corresponds to roughly 31 % of full brightness, a level where colour
@@ -66,8 +72,8 @@ class Detector:
         stationary_seconds: int,
         target_fps: float,
         night_enhancement: bool,
-        scan_regions: list[BoxedRegion],
-        ignore_regions: list[BoxedRegion],
+        scan_regions: list[Region],
+        ignore_regions: list[Region],
     ):
         """Initialize the detector.
 
@@ -86,12 +92,12 @@ class Detector:
                 with ``stationary_seconds`` to compute the required frame count.
             night_enhancement: When ``True``, apply CLAHE or IR sharpening
                 before inference based on frame brightness/saturation.
-            scan_regions: Bounding boxes that define the area(s) of interest.
-                A detection must overlap at least one scan region to be kept.
-                An empty list means the entire frame is scanned.
-            ignore_regions: Bounding boxes for areas to suppress. A detection
-                whose bounding box is ≥ 95 % covered by an ignore region is
-                discarded.
+            scan_regions: Rectangles or polygons that define the area(s) of
+                interest. A detection must overlap at least one scan region to
+                be kept. An empty list means the entire frame is scanned.
+            ignore_regions: Rectangles or polygons for areas to suppress. A
+                detection whose bounding box is ≥ 95 % covered by the union of
+                all ignore regions is discarded.
         """
         self._model = YOLO(model_path)
         self._vehicle_classes = vehicle_classes
@@ -101,6 +107,11 @@ class Detector:
         self._night_enhancement = night_enhancement
         self._scan_regions = scan_regions
         self._ignore_regions = ignore_regions
+        # Pre-merge each region list into a single shape so overlap/coverage
+        # checks work across region boundaries (e.g. a vehicle straddling two
+        # adjacent ignore regions) without double-counting overlapping regions.
+        self._scan_area = self._union(scan_regions)
+        self._ignore_area = self._union(ignore_regions)
         self._tracked: list[TrackedVehicle] = []
 
     def process_frame(self, frame: np.ndarray) -> tuple[int, list[TrackedVehicle]]:
@@ -205,7 +216,7 @@ class Detector:
         2. Keep only boxes whose class is in ``_vehicle_classes`` and whose
            confidence meets ``_detection_confidence``.
         3. Discard boxes that don't overlap any scan region or that are
-           95 %+ covered by an ignore region.
+           95 %+ covered by the union of the ignore regions.
         4. Sort surviving boxes by confidence (descending) and apply greedy
            IoU-based NMS to remove overlapping duplicates.
 
@@ -301,7 +312,7 @@ class Detector:
         return inter / union if union > 0 else 0.0
 
     def _is_in_scan_regions(self, box: tuple) -> bool:
-        """Return True if the box overlaps at least one scan region.
+        """Return True if the box overlaps at least one scan region (with non-zero area).
 
         An empty scan region list means the full frame is in scope, so this
         always returns ``True`` in that case.
@@ -313,23 +324,18 @@ class Detector:
             ``True`` if the detection should be considered, ``False`` if it
             falls entirely outside all configured scan regions.
         """
-        if not self._scan_regions:
+        if self._scan_area is None:
             return True
-        x1, y1, x2, y2 = box
-        for region in self._scan_regions:
-            rx1, ry1 = region.x, region.y
-            rx2, ry2 = region.x + region.width, region.y + region.height
-            if x2 > rx1 and x1 < rx2 and y2 > ry1 and y1 < ry2:
-                return True
-        return False
+        return self._scan_area.intersection(shapely_box(*box)).area > 0
 
     def _is_in_ignore_regions(self, box: tuple) -> bool:
-        """Return True if the box is substantially covered by an ignore region.
+        """Return True if the box is substantially covered by the ignore regions.
 
-        A detection is suppressed when ≥ 95 % of its area overlaps an ignore
-        region. This threshold avoids discarding vehicles that merely touch the
-        edge of a masked area (e.g. a parked-car zone that borders a travel
-        lane).
+        A detection is suppressed when ≥ 95 % of its area lies inside the
+        union of all ignore regions, so a vehicle split across two adjacent
+        regions is treated the same as one inside a single region. The
+        threshold avoids discarding vehicles that merely touch the edge of a
+        masked area (e.g. a parked-car zone that borders a travel lane).
 
         Args:
             box: ``(x1, y1, x2, y2)`` detection bounding box.
@@ -337,20 +343,17 @@ class Detector:
         Returns:
             ``True`` if the detection should be suppressed, ``False`` otherwise.
         """
-        if not self._ignore_regions:
+        if self._ignore_area is None:
             return False
-        x1, y1, x2, y2 = box
-        vehicle_area = (x2 - x1) * (y2 - y1)
-        if vehicle_area <= 0:
+        vehicle = shapely_box(*box)
+        if vehicle.area <= 0:
             return False
-        for region in self._ignore_regions:
-            rx1, ry1 = region.x, region.y
-            rx2, ry2 = region.x + region.width, region.y + region.height
-            ix1 = max(x1, rx1)
-            iy1 = max(y1, ry1)
-            ix2 = min(x2, rx2)
-            iy2 = min(y2, ry2)
-            inter = max(0.0, ix2 - ix1) * max(0.0, iy2 - iy1)
-            if inter / vehicle_area >= 0.95:
-                return True
-        return False
+        coverage = self._ignore_area.intersection(vehicle).area / vehicle.area
+        return coverage >= _IGNORE_COVERAGE_THRESHOLD - 1e-9
+
+    @staticmethod
+    def _union(regions: list[Region]):
+        """Merge regions into one shapely geometry, or ``None`` if there are none."""
+        if not regions:
+            return None
+        return unary_union([Polygon(r.points) for r in regions])
