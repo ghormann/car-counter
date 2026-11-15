@@ -234,6 +234,20 @@ class TestStationaryCount:
             assert vehicles[0].box == box
 
 
+class TestInferenceImageSize:
+    def _run_with(self, **kwargs):
+        d = make_detector(**kwargs)
+        d._model.return_value = []
+        d._run_inference(np.zeros((480, 640, 3), dtype=np.uint8))
+        return d._model.call_args.kwargs
+
+    def test_model_called_with_configured_imgsz(self):
+        assert self._run_with(inference_imgsz=1280)['imgsz'] == 1280
+
+    def test_model_called_with_640_by_default(self):
+        assert self._run_with()['imgsz'] == 640
+
+
 class TestScanRegions:
     def test_no_regions_includes_all_detections(self):
         d = make_detector(scan_regions=[])

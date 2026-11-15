@@ -77,7 +77,7 @@ Polygons are useful for following an angled road or curb that would otherwise ne
 | ---------------------- | --------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `vehicle_classes`      | list of strings | `[car, truck, bus]` | COCO class names to detect and count.                                                                                                     |
 | `detection_confidence` | float (0.0–1.0) | `0.4`               | Minimum YOLO confidence score to accept a detection. Lower values improve recall in night conditions at the cost of more false positives. |
-| `stationary_seconds`   | int             | `3`                 | A vehicle must be continuously detected with sufficient IoU overlap for this many seconds before it is counted.                           |
+| `stationary_seconds`   | int             | `3`                 | A vehicle must be continuously detected with sufficient IoU overlap for this many seconds before it is counted. Must satisfy `stationary_seconds × target_fps > 1` so a vehicle is seen in at least 2 consecutive frames; startup fails otherwise. |
 | `iou_threshold`        | float (0.0–1.0) | `0.5`               | Minimum IoU (intersection-over-union) to match a detection in the current frame to a tracked vehicle in the previous frame.               |
 
 ### Night / Low-Light Enhancement
@@ -95,13 +95,14 @@ Enhancement is selected automatically based on per-frame brightness and saturati
 
 | Field        | Type | Default | Description                                                                                                                                  |
 | ------------ | ---- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `target_fps` | int  | `1`     | Frames to process per second. All frames are read from the stream to keep the buffer clear; only one per interval is passed to the detector. |
+| `target_fps` | float | `1`     | Frames to process per second (e.g. `0.125` = one frame every 8 s). All frames are read from the stream to keep the buffer clear; only one per interval is passed to the detector. |
 
 ### Model
 
 | Field        | Type   | Default      | Description                                                                                                                          |
 | ------------ | ------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `model_path` | string | `yolov8x.pt` | Path to YOLOv8 weights. The default `yolov8x` weights are baked into the Docker image. Mount a custom path to use a different model. |
+| `inference_imgsz` | int (multiple of 32) | `640` | Size YOLO resizes each frame to before inference. Larger values (e.g. `1280`) detect smaller, more distant vehicles at roughly 2–4× the CPU per frame; lower `target_fps` to compensate. |
 
 ### MQTT
 

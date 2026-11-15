@@ -76,6 +76,7 @@ def main():
         night_enhancement=app_config.night_enhancement,
         scan_regions=app_config.scan_regions,
         ignore_regions=app_config.ignore_regions,
+        inference_imgsz=app_config.inference_imgsz,
     )
 
     image_saver = ImageSaver(

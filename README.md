@@ -74,6 +74,7 @@ night_enhancement: true # Enable CLAHE preprocessing for low-light frames
 target_fps: 1 # Frames to process per second
 
 model_path: yolov8x.pt # YOLOv8 weights (baked into Docker image)
+inference_imgsz: 640 # YOLO input size; 1280 finds distant cars at ~2-4x CPU
 mqtt_prefix: car-counter # MQTT topic prefix; topic becomes <prefix>/<camera_name>
 
 publish_interval_seconds: 5 # Heartbeat interval when count has not changed
