@@ -137,6 +137,32 @@ class TestLoadAppConfig:
         with pytest.raises(ValueError, match="points"):
             load_app_config(str(p))
 
+    def test_inference_imgsz_defaults_to_640(self, tmp_path):
+        p = make_app_config_file(tmp_path)
+        assert load_app_config(str(p)).inference_imgsz == 640
+
+    def test_inference_imgsz_parsed_when_present(self, tmp_path):
+        p = self._write_with(tmp_path, inference_imgsz=1280)
+        assert load_app_config(str(p)).inference_imgsz == 1280
+
+    @pytest.mark.parametrize("bad", [0, -640, 1000])
+    def test_inference_imgsz_must_be_positive_multiple_of_32(self, tmp_path, bad):
+        p = self._write_with(tmp_path, inference_imgsz=bad)
+        with pytest.raises(ValueError, match="inference_imgsz"):
+            load_app_config(str(p))
+
+    @pytest.mark.parametrize("seconds,fps", [(5, 0.2), (4, 0.125), (1, 0.5)])
+    def test_stationary_window_of_one_frame_raises(self, tmp_path, seconds, fps):
+        # ceil(seconds * fps) == 1 would count any single detection as stationary.
+        p = self._write_with(tmp_path, stationary_seconds=seconds, target_fps=fps)
+        with pytest.raises(ValueError, match="stationary_seconds"):
+            load_app_config(str(p))
+
+    @pytest.mark.parametrize("seconds,fps", [(12, 0.125), (3, 0.5), (10, 0.2)])
+    def test_stationary_window_of_two_or_more_frames_accepted(self, tmp_path, seconds, fps):
+        p = self._write_with(tmp_path, stationary_seconds=seconds, target_fps=fps)
+        load_app_config(str(p))
+
     def test_missing_file_raises_file_not_found(self, tmp_path):
         with pytest.raises(FileNotFoundError, match="not found"):
             load_app_config(str(tmp_path / 'nonexistent.yaml'))

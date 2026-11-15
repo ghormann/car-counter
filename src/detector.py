@@ -74,6 +74,7 @@ class Detector:
         night_enhancement: bool,
         scan_regions: list[Region],
         ignore_regions: list[Region],
+        inference_imgsz: int = 640,
     ):
         """Initialize the detector.
 
@@ -98,8 +99,12 @@ class Detector:
             ignore_regions: Rectangles or polygons for areas to suppress. A
                 detection whose bounding box is ≥ 95 % covered by the union of
                 all ignore regions is discarded.
+            inference_imgsz: Size (pixels) YOLO resizes each frame to before
+                inference. Larger values find smaller, more distant vehicles
+                at roughly quadratic CPU cost.
         """
         self._model = YOLO(model_path)
+        self._inference_imgsz = inference_imgsz
         self._vehicle_classes = vehicle_classes
         self._detection_confidence = detection_confidence
         self._iou_threshold = iou_threshold
@@ -227,7 +232,7 @@ class Detector:
             List of :class:`Detection` objects, highest confidence first, with
             duplicates removed.
         """
-        results = self._model(frame, verbose=False)
+        results = self._model(frame, imgsz=self._inference_imgsz, verbose=False)
         candidates = []
         for result in results:
             for box in result.boxes:

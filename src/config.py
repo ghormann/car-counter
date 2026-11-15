@@ -1,5 +1,6 @@
 """Configuration dataclasses and loaders for app settings (YAML) and MQTT credentials (JSON)."""
 import json
+import math
 import yaml
 from dataclasses import dataclass
 from pathlib import Path
@@ -55,6 +56,7 @@ class AppConfig:
     mqtt_topic: str  # derived from mqtt_prefix/camera_name
     output_dir: Path
     image_save_cooldown_seconds: int
+    inference_imgsz: int = 640  # YOLO input size; larger finds smaller (more distant) vehicles
 
 
 @dataclass
@@ -125,6 +127,20 @@ def load_app_config(path: str) -> AppConfig:
     if not output_dir.exists():
         raise ValueError(f"output_dir does not exist: {output_dir}")
 
+    inference_imgsz = int(data.get('inference_imgsz', 640))
+    if inference_imgsz <= 0 or inference_imgsz % 32 != 0:
+        raise ValueError(f"inference_imgsz must be a positive multiple of 32: {inference_imgsz}")
+
+    # The tracker needs a vehicle in this many consecutive frames before it is
+    # stationary. One frame would count every passing car, so require two.
+    stationary_frames = math.ceil(float(data['stationary_seconds']) * float(data['target_fps']))
+    if stationary_frames < 2:
+        raise ValueError(
+            "stationary_seconds * target_fps must be > 1 so a vehicle is seen in at least "
+            f"2 consecutive frames (got stationary_seconds={data['stationary_seconds']}, "
+            f"target_fps={data['target_fps']} -> {stationary_frames} frame)"
+        )
+
     scan_regions = [_parse_region(r, 'scan_regions') for r in data.get('scan_regions') or []]
     ignore_regions = [_parse_region(r, 'ignore_regions') for r in data.get('ignore_regions') or []]
 
@@ -145,6 +161,7 @@ def load_app_config(path: str) -> AppConfig:
         mqtt_topic=f"{data['mqtt_prefix']}/{data['camera_name']}",
         output_dir=output_dir,
         image_save_cooldown_seconds=int(data['image_save_cooldown_seconds']),
+        inference_imgsz=inference_imgsz,
     )
 
 
