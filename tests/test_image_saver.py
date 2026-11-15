@@ -5,7 +5,7 @@ import cv2
 import pytest
 from pathlib import Path
 
-from src.config import BoxedRegion
+from src.config import BoxedRegion, PolygonRegion
 from src.detector import TrackedVehicle
 from src.image_saver import ImageSaver
 
@@ -105,6 +105,23 @@ class TestImageSaverAnnotation:
         assert annotated[50, 50, 0] == 255  # B channel high
         assert annotated[50, 50, 2] == 0    # R channel zero
         assert annotated[50, 50, 1] == 0    # G channel zero
+
+    def test_polygon_ignore_region_drawn_blue(self, tmp_output_dir):
+        saver = ImageSaver(tmp_output_dir, "driveway", cooldown_seconds=0)
+        region = PolygonRegion(points=[(100, 300), (400, 300), (250, 450)])
+        frame = make_frame()
+        annotated = saver._annotate(frame.copy(), [], [], [region])
+        # Midpoint of the bottom-right edge (400,300)->(250,450) is (325, 375).
+        assert annotated[375, 325, 0] == 255  # B channel high
+        assert annotated[375, 325, 2] == 0    # R channel zero
+
+    def test_polygon_scan_region_drawn_green(self, tmp_output_dir):
+        saver = ImageSaver(tmp_output_dir, "driveway", cooldown_seconds=0)
+        region = PolygonRegion(points=[(100, 300), (400, 300), (250, 450)])
+        frame = make_frame()
+        annotated = saver._annotate(frame.copy(), [], [region])
+        assert annotated[375, 325, 1] == 255  # G channel high
+        assert annotated[375, 325, 2] == 0    # R channel zero
 
     def test_annotate_does_not_modify_original_frame(self, tmp_output_dir):
         saver = ImageSaver(tmp_output_dir, "driveway", cooldown_seconds=0)

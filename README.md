@@ -60,7 +60,8 @@ rtsps_url: rtsps://192.168.1.10/stream # Credentials optional: rtsps://user:pass
 scan_regions:
   - { x: 100, y: 200, width: 400, height: 300 }
 
-# Ignore regions (optional — vehicles ≥95% inside are excluded from counting)
+# Ignore regions (optional — vehicles ≥95% inside the combined regions are excluded from counting)
+# Regions may be rectangles or polygons: - points: [[x1, y1], [x2, y2], [x3, y3], ...]
 # ignore_regions:
 #   - { x: 0, y: 0, width: 100, height: 50 }
 

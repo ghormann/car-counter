@@ -6,9 +6,11 @@ rtsps_url: rtsps://192.168.1.10/stream
 scan_regions:
   - {x: 100, y: 200, width: 400, height: 300}
 
-# Ignore regions (optional — vehicles ≥95% inside are excluded from counting)
+# Ignore regions (optional — vehicles ≥95% inside the combined regions are excluded from counting)
+# Each region is a rectangle {x, y, width, height} or a polygon {points: [[x, y], ...]}.
 ignore_regions:
   - {x: 0, y: 0, width: 100, height: 50}
+  - points: [[0, 600], [1920, 700], [1920, 1080], [0, 1080]]
 
 # Vehicle detection
 vehicle_classes: [car, truck, bus]

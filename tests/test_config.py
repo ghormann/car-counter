@@ -4,7 +4,7 @@ import pytest
 import yaml
 from pathlib import Path
 
-from src.config import load_app_config, load_mqtt_config, AppConfig, MqttConfig, BoxedRegion
+from src.config import load_app_config, load_mqtt_config, AppConfig, MqttConfig, BoxedRegion, PolygonRegion
 
 
 VALID_APP_DATA = {
@@ -88,6 +88,54 @@ class TestLoadAppConfig:
         p = make_app_config_file(tmp_path)
         result = load_app_config(str(p))
         assert result.ignore_regions == []
+
+    def _write_with(self, tmp_path, **overrides):
+        data = dict(VALID_APP_DATA)
+        data['output_dir'] = str(tmp_path)
+        data.update(overrides)
+        p = tmp_path / 'config.yaml'
+        write_yaml(p, data)
+        return p
+
+    def test_polygon_region_parsed(self, tmp_path):
+        p = self._write_with(tmp_path, ignore_regions=[{'points': [[0, 0], [100, 0], [50, 80]]}])
+        result = load_app_config(str(p))
+        assert result.ignore_regions == [PolygonRegion(points=[(0, 0), (100, 0), (50, 80)])]
+
+    def test_mixed_rectangle_and_polygon_regions(self, tmp_path):
+        p = self._write_with(tmp_path, scan_regions=[
+            {'x': 1, 'y': 2, 'width': 3, 'height': 4},
+            {'points': [[0, 0], [10, 0], [10, 10], [0, 10]]},
+        ])
+        result = load_app_config(str(p))
+        assert result.scan_regions == [
+            BoxedRegion(x=1, y=2, width=3, height=4),
+            PolygonRegion(points=[(0, 0), (10, 0), (10, 10), (0, 10)]),
+        ]
+
+    def test_boxed_region_exposes_corner_points(self):
+        assert BoxedRegion(x=1, y=2, width=3, height=4).points == [(1, 2), (4, 2), (4, 6), (1, 6)]
+
+    def test_polygon_with_too_few_points_raises(self, tmp_path):
+        p = self._write_with(tmp_path, ignore_regions=[{'points': [[0, 0], [10, 10]]}])
+        with pytest.raises(ValueError, match="at least 3"):
+            load_app_config(str(p))
+
+    def test_self_intersecting_polygon_raises(self, tmp_path):
+        # Bow-tie shape
+        p = self._write_with(tmp_path, ignore_regions=[{'points': [[0, 0], [10, 10], [10, 0], [0, 10]]}])
+        with pytest.raises(ValueError, match="self-intersecting"):
+            load_app_config(str(p))
+
+    def test_malformed_point_raises(self, tmp_path):
+        p = self._write_with(tmp_path, ignore_regions=[{'points': [[0, 0], [10], [10, 10]]}])
+        with pytest.raises(ValueError):
+            load_app_config(str(p))
+
+    def test_region_missing_fields_raises(self, tmp_path):
+        p = self._write_with(tmp_path, ignore_regions=[{'x': 0, 'y': 0}])
+        with pytest.raises(ValueError, match="points"):
+            load_app_config(str(p))
 
     def test_missing_file_raises_file_not_found(self, tmp_path):
         with pytest.raises(FileNotFoundError, match="not found"):

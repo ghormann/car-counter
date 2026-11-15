@@ -7,6 +7,7 @@ paho-mqtt>=2.0.0
 prometheus-client>=0.20.0
 pyyaml>=6.0
 numpy>=1.24.0
+shapely>=2.0
 
 # testing
 pytest>=7.4.0
