@@ -92,3 +92,21 @@ def test_serve_image(client, image_root):
 def test_serve_image_not_found(client):
     r = client.get("/images/cam1/2024/01/15/nope.jpg")
     assert r.status_code == 404
+
+
+def test_images_timestamp_eastern_standard(client):
+    # 2024-01-15 12:00:00 UTC == 07:00:00 EST (UTC-5)
+    r = client.get("/api/images?camera=cam1&year=2024&month=01&day=15&sort=desc")
+    ts = {i["filename"]: i["timestamp"] for i in r.json()["images"]}
+    assert ts["20240115_120000.jpg"] == "2024-01-15 07:00:00 EST"
+    # Crosses midnight: 06:00 UTC == 01:00 EST same day
+    assert ts["startup_20240115_060000.jpg"] == "2024-01-15 01:00:00 EST"
+
+
+def test_images_timestamp_eastern_daylight(client, image_root):
+    d = image_root / "cam1" / "2024" / "07" / "04"
+    d.mkdir(parents=True)
+    (d / "20240704_020000.jpg").write_bytes(b"fake")
+    r = client.get("/api/images?camera=cam1&year=2024&month=07&day=04")
+    # 02:00 UTC == 22:00 EDT on the previous day (UTC-4)
+    assert r.json()["images"][0]["timestamp"] == "2024-07-03 22:00:00 EDT"

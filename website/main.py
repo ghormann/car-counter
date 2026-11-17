@@ -1,12 +1,16 @@
 import os
 import re
+from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 IMAGE_ROOT = Path(os.environ.get("IMAGE_ROOT", "/data"))
 PAGE_SIZE = 50
+# Image filenames are written in UTC; convert to this zone for display.
+DISPLAY_TZ = ZoneInfo(os.environ.get("DISPLAY_TZ", "America/New_York"))
 
 app = FastAPI()
 
@@ -78,11 +82,14 @@ def list_images(
     page_files = files[start : start + PAGE_SIZE]
 
     def _human_ts(filename: str) -> str:
-        m = re.search(r"(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})", filename)
+        m = re.search(r"(\d{8}_\d{6})", filename)
         if not m:
             return filename
-        Y, Mo, D, h, mi, s = m.groups()
-        return f"{Y}-{Mo}-{D} {h}:{mi}:{s}"
+        try:
+            utc = datetime.strptime(m.group(1), "%Y%m%d_%H%M%S").replace(tzinfo=timezone.utc)
+        except ValueError:
+            return filename
+        return utc.astimezone(DISPLAY_TZ).strftime("%Y-%m-%d %H:%M:%S %Z")
 
     images = [
         {
